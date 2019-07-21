@@ -2,11 +2,11 @@
     "manifestVersion": 1,
     "id": "sprint-review",
     "publisher": "ChrisWeldon",
-    "version": "1.0.0",
+    "version": "1.0.3",
     "name": "Azure DevOps Sprint Review",
     "description": "Azure DevOps Extension",
     "categories": [
-        "Other"
+        "Azure Boards"
     ],
     "targets": [
         {

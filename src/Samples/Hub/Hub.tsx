@@ -44,9 +44,9 @@ class HubContent extends React.Component<{}, IHubContentState> {
         const { selectedTabId, headerDescription, useCompactPivots, useLargeTitle } = this.state;
 
         return (
-            <Page className="sample-hub flex-grow">
+            <Page className="sample-hub flex-grow sprint-review">
 
-                <Header title="Sample Hub"
+                <Header title="Sprint Review"
                     commandBarItems={this.getCommandBarItems()}
                     description={headerDescription}
                     titleSize={useLargeTitle ? TitleSize.Large : TitleSize.Medium} />

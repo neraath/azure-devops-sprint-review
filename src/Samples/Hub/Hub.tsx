@@ -57,7 +57,6 @@ class HubContent extends React.Component<{}, IHubContentState> {
                     tabSize={useCompactPivots ? TabSize.Compact : TabSize.Tall}>
 
                     <Tab name="Overview" id="overview" />
-                    <Tab name="Navigation" id="navigation" />
                     <Tab name="Extension Data" id="extensionData" />
                     <Tab name="Messages" id="messages" />
                 </TabBar>
@@ -79,9 +78,6 @@ class HubContent extends React.Component<{}, IHubContentState> {
         const { selectedTabId } = this.state;
         if (selectedTabId === "overview") {
             return <OverviewTab />;
-        }
-        else if (selectedTabId === "navigation") {
-            return <NavigationTab />;
         }
         else if (selectedTabId === "extensionData") {
             return <ExtensionDataTab />;

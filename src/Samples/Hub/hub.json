@@ -18,5 +18,8 @@
                 "icon": "asset://static/sample-icon.png"
             }
         }
+    ],
+    "scopes": [
+        "vso.work"
     ]
 }

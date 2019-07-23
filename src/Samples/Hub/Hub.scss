@@ -11,3 +11,27 @@
 .sample-picker {
     margin-left: 8px;
 }
+
+.work-item-grid {
+    margin-top: 1em;
+    width: 100%;
+}
+
+.work-item-grid table {
+    width: inherit;
+}
+
+.work-item-grid th,
+.work-item-grid td {
+    text-align: left;
+    min-height: 1em;
+    padding: 0.25em;
+}
+
+.work-item-grid tr {
+    min-height: 1.5em;
+}
+
+.work-item-grid tr:hover {
+    background-color: aqua;
+}

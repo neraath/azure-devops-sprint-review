@@ -7,6 +7,8 @@ import { Dropdown } from "azure-devops-ui/Dropdown";
 import { ListSelection } from "azure-devops-ui/List";
 import { IListBoxItem } from "azure-devops-ui/ListBox";
 
+import { WorkItemGrid } from "./WorkItemGrid";
+
 export interface IOverviewTabState {
     userName?: string;
     projectName?: string;
@@ -98,18 +100,7 @@ export class OverviewTab extends React.Component<{}, IOverviewTabState> {
                         <div>Extension version: {extensionContext.version}</div>
                     </>
                 }
-                <div className="work-item-table">
-                    <table>
-                        <tbody>
-                        {this.state.workItems.map(item => (
-                            <tr key={item.id}>
-                                <td>{item.id}</td>
-                            </tr>
-                        ))}
-                        </tbody>
-                    </table>
-                </div>
-
+                <WorkItemGrid items={this.state.workItems} />
             </div>
         );
     }

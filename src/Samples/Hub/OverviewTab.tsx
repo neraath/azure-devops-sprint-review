@@ -56,17 +56,17 @@ export class OverviewTab extends React.Component<{}, IOverviewTabState> {
 
         if (project) {
             this.setState({ projectName: project.name });
-            console.debug(`project name set to: ${project.name}`);
 
             const client = getClient(WorkItemTrackingRestClient);
             let wiqlString : Wiql = { query: `SELECT [System.Id] FROM workitems WHERE [System.TeamProject] = '${project.name}' AND [System.AreaPath] = '${this.state.areaPath}' AND [System.WorkItemType] = 'User Story' AND [System.IterationPath] = '${this.state.iterationPath}'` };
-            console.debug(`WIQL Query: ${wiqlString.query}`);
+            
             const results = await client.queryByWiql(wiqlString, project.name);
             this.setState({ workItems: results.workItems });
+            
+            /*
+            console.debug("Results Obtained: ");
             console.debug(results);
-            results.workItems.forEach(element => {
-                console.log("Work Item " + element.id + " in iteration " + this.state.iterationPath);
-            });
+            */
         }
     }
 

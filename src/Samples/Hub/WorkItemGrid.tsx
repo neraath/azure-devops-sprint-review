@@ -1,23 +1,26 @@
 import * as React from "react";
+import * as moment from "moment";
 
-import { WorkItemReference } from "azure-devops-extension-api/WorkItemTracking";
+import { WorkItem } from "azure-devops-extension-api/WorkItemTracking";
 
 export interface WorkItemGridState {
-    items: WorkItemReference[],
+    items: WorkItem[],
 };
 
-export function WorkItemRow(props : { value: WorkItemReference }) : JSX.Element {
+export function WorkItemRow(props : { value: WorkItem }) : JSX.Element {
+    console.debug(props.value);
+    let createdDate = moment(props.value.fields['System.CreatedDate']);
     return (
         <tr>
             <td>{props.value.id}</td>
-            <td>This is a Sample User Story</td>
-            <td>Closed</td>
-            <td>June 14, 2019</td>
+            <td>{props.value.fields['System.Title']}</td>
+            <td>{props.value.fields['System.State']}</td>
+            <td>{createdDate.format('MMMM D, Y')}</td>
         </tr>
     );
 }
 
-export function WorkItemGrid(props : { items: WorkItemReference[] }) : JSX.Element {
+export function WorkItemGrid(props : { items: WorkItem[] }) : JSX.Element {
     return (
         <div className="work-item-grid">
             <table>

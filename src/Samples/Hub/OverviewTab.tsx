@@ -1,7 +1,9 @@
 import * as React from "react";
 import * as SDK from "azure-devops-extension-sdk";
+import * as moment from "moment";
+
 import { CommonServiceIds, getClient, IProjectPageService } from "azure-devops-extension-api";
-import { WorkItemTrackingRestClient, Wiql, WorkItemReference } from "azure-devops-extension-api/WorkItemTracking";
+import { WorkItemTrackingRestClient, Wiql, WorkItem, WorkItemExpand } from "azure-devops-extension-api/WorkItemTracking";
 
 import { Dropdown } from "azure-devops-ui/Dropdown";
 import { ListSelection } from "azure-devops-ui/List";
@@ -18,7 +20,7 @@ export interface IOverviewTabState {
     extensionData?: string;
     extensionContext?: SDK.IExtensionContext;
     selection: ListSelection;
-    workItems: WorkItemReference[];
+    workItems: WorkItem[];
 }
 
 export class OverviewTab extends React.Component<{}, IOverviewTabState> {
@@ -58,15 +60,21 @@ export class OverviewTab extends React.Component<{}, IOverviewTabState> {
             this.setState({ projectName: project.name });
 
             const client = getClient(WorkItemTrackingRestClient);
-            let wiqlString : Wiql = { query: `SELECT [System.Id] FROM workitems WHERE [System.TeamProject] = '${project.name}' AND [System.AreaPath] = '${this.state.areaPath}' AND [System.WorkItemType] = 'User Story' AND [System.IterationPath] = '${this.state.iterationPath}'` };
-            
-            const results = await client.queryByWiql(wiqlString, project.name);
-            this.setState({ workItems: results.workItems });
-            
-            /*
-            console.debug("Results Obtained: ");
-            console.debug(results);
-            */
+            let endOfFirstDateOfSprint = moment('2019-07-17 23:59');
+            let wiqlString : Wiql = { query: `SELECT [System.Id] FROM workitems WHERE [System.TeamProject] = '${project.name}' AND [System.AreaPath] = '${this.state.areaPath}' AND [System.WorkItemType] = 'User Story' AND [System.IterationPath] = '${this.state.iterationPath}' ASOF '${endOfFirstDateOfSprint.format('M/D/Y HH:mm')}'` };
+            const idResults = await client.queryByWiql(wiqlString, project.name);
+            //console.debug("id results: ");
+            //console.debug(idResults);
+
+            if (idResults.workItems.length == 0) return;
+
+            const columns = ['System.Title','System.State','System.CreatedDate'];
+            const results = await client.getWorkItems(idResults.workItems.map(x => x.id), project.name, columns);
+
+            this.setState({ workItems: results });
+
+            //console.debug("Results Obtained: ");
+            //console.debug(results);
         }
     }
 

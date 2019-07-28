@@ -30,6 +30,7 @@
     "azure-devops-extension-api": "~1.153.2",
     "azure-devops-extension-sdk": "~2.0.10",
     "azure-devops-ui": "~1.153.0",
+    "moment": "^2.24.0",
     "react": "~16.8.1",
     "react-dom": "~16.8.1"
   },

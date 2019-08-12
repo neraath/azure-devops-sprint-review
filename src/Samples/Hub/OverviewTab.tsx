@@ -64,9 +64,8 @@ export class OverviewTab extends React.Component<{}, IOverviewTabState> {
             console.debug("team results");
             console.debug(teamResults);
 
-            /*
             let teamContext : TeamContext = { 
-                projectId: teamResults[0].projectId,
+                projectId: projectInfo.id,
                 project: '',
                 teamId: teamResults[0].id,
                 team: ''
@@ -76,7 +75,10 @@ export class OverviewTab extends React.Component<{}, IOverviewTabState> {
             let iterationService = getClient(WorkRestClient);
             let currentIteration = await iterationService.getTeamIterations(teamContext, "Current");
             let allIterations = await iterationService.getTeamIterations(teamContext);
-            */
+            console.debug("currentIteration:");
+            console.debug(currentIteration);
+            console.debug("all iterations");
+            console.debug(allIterations);
 
             const client = getClient(WorkItemTrackingRestClient);
             let endOfFirstDateOfSprint = moment('2019-07-27 23:59');

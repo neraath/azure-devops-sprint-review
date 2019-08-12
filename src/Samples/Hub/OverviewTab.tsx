@@ -6,12 +6,14 @@ import { CommonServiceIds, getClient, IProjectPageService, IProjectInfo } from "
 import { WorkRestClient } from "azure-devops-extension-api/Work";
 import { WorkItemTrackingRestClient, Wiql, WorkItem, WorkItemExpand } from "azure-devops-extension-api/WorkItemTracking";
 import { CoreRestClient, WebApiTeam, TeamContext } from "azure-devops-extension-api/Core";
+import { ObservableValue } from "azure-devops-ui/Core/Observable";
 
 import { Dropdown } from "azure-devops-ui/Dropdown";
 import { ListSelection } from "azure-devops-ui/List";
 import { IListBoxItem } from "azure-devops-ui/ListBox";
 
 import { WorkItemGrid } from "./WorkItemGrid";
+import { ArrayItemProvider } from "azure-devops-ui/Utilities/Provider";
 
 export interface IOverviewTabState {
     projectName?: string;
@@ -26,12 +28,8 @@ export interface IOverviewTabState {
 }
 
 export class OverviewTab extends React.Component<{}, IOverviewTabState> {
-
     constructor(props: {}) {
         super(props);
-
-        const selection = new ListSelection();
-        selection.select(0, 1);
 
         this.state = {
             iterationPath: "Azure DevOps Sprint Review\\Iteration 1",
@@ -40,7 +38,7 @@ export class OverviewTab extends React.Component<{}, IOverviewTabState> {
             workItemsAddedAfterSprintStart: [],
             workItemsRemovedAfterSprintStart: [],
             teams: [],
-            selection
+            selection: new ListSelection()
         };
     }
 
@@ -61,6 +59,7 @@ export class OverviewTab extends React.Component<{}, IOverviewTabState> {
             const coreService = getClient(CoreRestClient);
             let teamResults = await coreService.getTeams(projectInfo.id);
             this.setState({ teams: teamResults });
+            this.state.selection.select(0);
             console.debug("team results");
             console.debug(teamResults);
 
@@ -72,6 +71,7 @@ export class OverviewTab extends React.Component<{}, IOverviewTabState> {
             };
             console.debug("team context: ");
             console.debug(teamContext);
+
             let iterationService = getClient(WorkRestClient);
             let currentIteration = await iterationService.getTeamIterations(teamContext, "Current");
             let allIterations = await iterationService.getTeamIterations(teamContext);
@@ -101,18 +101,15 @@ export class OverviewTab extends React.Component<{}, IOverviewTabState> {
 
     public render(): JSX.Element {
 
-        const { projectName } = this.state;
-
         return (
             <div className="sample-hub-section">
                 <Dropdown<string>
                     className="sample-picker"
-                    items={[
-                        { id: "sapphire", data: "Sapphire", text: "Sapphire"},
-                        { id: "emerald", data: "Emerald", text: "Emerald"},
-                        { id: "jade", data: "Jade", text: "Jade"},
-                        { id: "topaz", data: "Topaz", text: "Topaz"}
-                    ]}
+                    items={this.state.teams.map((team) => ({
+                        id: team.id,
+                        data: team.id,
+                        text: team.name
+                    }))}
                     onSelect={this.onTeamChanged}
                     selection={this.state.selection}
                 />
@@ -120,10 +117,8 @@ export class OverviewTab extends React.Component<{}, IOverviewTabState> {
                 <WorkItemGrid items={this.state.workItems} />
 
                 <h2>Stories Added to Sprint after Commitment</h2>
-                <WorkItemGrid items={this.state.workItems} />
 
                 <h2>Stories Removed from Sprint after Commitment</h2>
-                <WorkItemGrid items={this.state.workItems} />
             </div>
         );
     }

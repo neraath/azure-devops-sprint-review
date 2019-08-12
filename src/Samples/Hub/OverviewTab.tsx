@@ -2,8 +2,10 @@ import * as React from "react";
 import * as SDK from "azure-devops-extension-sdk";
 import * as moment from "moment";
 
-import { CommonServiceIds, getClient, IProjectPageService } from "azure-devops-extension-api";
+import { CommonServiceIds, getClient, IProjectPageService, IProjectInfo } from "azure-devops-extension-api";
+import { WorkRestClient } from "azure-devops-extension-api/Work";
 import { WorkItemTrackingRestClient, Wiql, WorkItem, WorkItemExpand } from "azure-devops-extension-api/WorkItemTracking";
+import { CoreRestClient, WebApiTeam, TeamContext } from "azure-devops-extension-api/Core";
 
 import { Dropdown } from "azure-devops-ui/Dropdown";
 import { ListSelection } from "azure-devops-ui/List";
@@ -12,15 +14,15 @@ import { IListBoxItem } from "azure-devops-ui/ListBox";
 import { WorkItemGrid } from "./WorkItemGrid";
 
 export interface IOverviewTabState {
-    userName?: string;
     projectName?: string;
     iterationPath?: string;
     areaPath?: string;
-    iframeUrl?: string;
     extensionData?: string;
-    extensionContext?: SDK.IExtensionContext;
     selection: ListSelection;
     workItems: WorkItem[];
+    workItemsAddedAfterSprintStart: WorkItem[];
+    workItemsRemovedAfterSprintStart: WorkItem[];
+    teams: WebApiTeam[];
 }
 
 export class OverviewTab extends React.Component<{}, IOverviewTabState> {
@@ -32,10 +34,12 @@ export class OverviewTab extends React.Component<{}, IOverviewTabState> {
         selection.select(0, 1);
 
         this.state = {
-            iframeUrl: window.location.href,
             iterationPath: "Azure DevOps Sprint Review\\Iteration 1",
             areaPath: "Azure DevOps Sprint Review\\Core",
             workItems: [],
+            workItemsAddedAfterSprintStart: [],
+            workItemsRemovedAfterSprintStart: [],
+            teams: [],
             selection
         };
     }
@@ -47,24 +51,39 @@ export class OverviewTab extends React.Component<{}, IOverviewTabState> {
     private async initializeState(): Promise<void> {
         await SDK.ready();
 
-        const userName = SDK.getUser().displayName;
-        this.setState({
-            userName,
-            extensionContext: SDK.getExtensionContext()
-         });
-
         const projectService = await SDK.getService<IProjectPageService>(CommonServiceIds.ProjectPageService);
         const project = await projectService.getProject();
 
         if (project) {
-            this.setState({ projectName: project.name });
+            let projectInfo : IProjectInfo = project;
+            this.setState({ projectName: projectInfo.name });
+
+            const coreService = getClient(CoreRestClient);
+            let teamResults = await coreService.getTeams(projectInfo.id);
+            this.setState({ teams: teamResults });
+            console.debug("team results");
+            console.debug(teamResults);
+
+            /*
+            let teamContext : TeamContext = { 
+                projectId: teamResults[0].projectId,
+                project: '',
+                teamId: teamResults[0].id,
+                team: ''
+            };
+            console.debug("team context: ");
+            console.debug(teamContext);
+            let iterationService = getClient(WorkRestClient);
+            let currentIteration = await iterationService.getTeamIterations(teamContext, "Current");
+            let allIterations = await iterationService.getTeamIterations(teamContext);
+            */
 
             const client = getClient(WorkItemTrackingRestClient);
-            let endOfFirstDateOfSprint = moment('2019-07-17 23:59');
+            let endOfFirstDateOfSprint = moment('2019-07-27 23:59');
             let wiqlString : Wiql = { query: `SELECT [System.Id] FROM workitems WHERE [System.TeamProject] = '${project.name}' AND [System.AreaPath] = '${this.state.areaPath}' AND [System.WorkItemType] = 'User Story' AND [System.IterationPath] = '${this.state.iterationPath}' ASOF '${endOfFirstDateOfSprint.format('M/D/Y HH:mm')}'` };
             const idResults = await client.queryByWiql(wiqlString, project.name);
-            //console.debug("id results: ");
-            //console.debug(idResults);
+            console.debug("id results: ");
+            console.debug(idResults);
 
             if (idResults.workItems.length == 0) return;
 
@@ -80,7 +99,7 @@ export class OverviewTab extends React.Component<{}, IOverviewTabState> {
 
     public render(): JSX.Element {
 
-        const { userName, projectName, iframeUrl, extensionContext } = this.state;
+        const { projectName } = this.state;
 
         return (
             <div className="sample-hub-section">
@@ -95,25 +114,19 @@ export class OverviewTab extends React.Component<{}, IOverviewTabState> {
                     onSelect={this.onTeamChanged}
                     selection={this.state.selection}
                 />
-                <div>Hello, {userName}!</div>
-                {
-                    projectName &&
-                    <div>Project: {projectName}</div>
-                }
-                <div>iframe URL: {iframeUrl}</div>
-                {
-                    extensionContext &&
-                    <>
-                        <div>Extension id: {extensionContext.id}</div>
-                        <div>Extension version: {extensionContext.version}</div>
-                    </>
-                }
+                <h2>Sprint Ending</h2>
+                <WorkItemGrid items={this.state.workItems} />
+
+                <h2>Stories Added to Sprint after Commitment</h2>
+                <WorkItemGrid items={this.state.workItems} />
+
+                <h2>Stories Removed from Sprint after Commitment</h2>
                 <WorkItemGrid items={this.state.workItems} />
             </div>
         );
     }
 
     private onTeamChanged = (event: React.SyntheticEvent<HTMLElement>, item: IListBoxItem<string>): void => {
-        console.log("Team changed to " + item.data);
+        console.log("Sprint changed to " + item.data);
     }
 }

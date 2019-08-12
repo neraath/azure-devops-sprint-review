@@ -6,14 +6,12 @@ import { CommonServiceIds, getClient, IProjectPageService, IProjectInfo } from "
 import { WorkRestClient } from "azure-devops-extension-api/Work";
 import { WorkItemTrackingRestClient, Wiql, WorkItem, WorkItemExpand } from "azure-devops-extension-api/WorkItemTracking";
 import { CoreRestClient, WebApiTeam, TeamContext } from "azure-devops-extension-api/Core";
-import { ObservableValue } from "azure-devops-ui/Core/Observable";
 
 import { Dropdown } from "azure-devops-ui/Dropdown";
 import { ListSelection } from "azure-devops-ui/List";
 import { IListBoxItem } from "azure-devops-ui/ListBox";
 
 import { WorkItemGrid } from "./WorkItemGrid";
-import { ArrayItemProvider } from "azure-devops-ui/Utilities/Provider";
 
 export interface IOverviewTabState {
     projectName?: string;
@@ -124,6 +122,6 @@ export class OverviewTab extends React.Component<{}, IOverviewTabState> {
     }
 
     private onTeamChanged = (event: React.SyntheticEvent<HTMLElement>, item: IListBoxItem<string>): void => {
-        console.log("Sprint changed to " + item.data);
+        console.log("Team changed to " + item.data);
     }
 }

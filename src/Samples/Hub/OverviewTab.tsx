@@ -12,6 +12,7 @@ import { ListSelection } from "azure-devops-ui/List";
 import { IListBoxItem } from "azure-devops-ui/ListBox";
 
 import { WorkItemGrid } from "./WorkItemGrid";
+import { TeamSelector } from "./TeamSelector";
 
 export interface IOverviewTabState {
     projectName?: string;
@@ -23,6 +24,7 @@ export interface IOverviewTabState {
     workItemsAddedAfterSprintStart: WorkItem[];
     workItemsRemovedAfterSprintStart: WorkItem[];
     teams: WebApiTeam[];
+    projectInfo?: IProjectInfo;
 }
 
 export class OverviewTab extends React.Component<{}, IOverviewTabState> {
@@ -50,25 +52,23 @@ export class OverviewTab extends React.Component<{}, IOverviewTabState> {
         const projectService = await SDK.getService<IProjectPageService>(CommonServiceIds.ProjectPageService);
         const project = await projectService.getProject();
 
+        console.debug("Overview: initializeState");
         if (project) {
+            console.debug("Overview: initializeState with projectInfo");
             let projectInfo : IProjectInfo = project;
-            this.setState({ projectName: projectInfo.name });
+            this.setState({ projectName: projectInfo.name, projectInfo: projectInfo });
 
             const coreService = getClient(CoreRestClient);
-            let teamResults = await coreService.getTeams(projectInfo.id);
+            let teamResults = await coreService.getTeams(project.id);
             this.setState({ teams: teamResults });
             this.state.selection.select(0);
-            console.debug("team results");
-            console.debug(teamResults);
 
             let teamContext : TeamContext = { 
-                projectId: projectInfo.id,
+                projectId: project.id,
                 project: '',
                 teamId: teamResults[0].id,
                 team: ''
             };
-            console.debug("team context: ");
-            console.debug(teamContext);
 
             let iterationService = getClient(WorkRestClient);
             let currentIteration = await iterationService.getTeamIterations(teamContext, "Current");
@@ -101,16 +101,7 @@ export class OverviewTab extends React.Component<{}, IOverviewTabState> {
 
         return (
             <div className="sample-hub-section">
-                <Dropdown<string>
-                    className="sample-picker"
-                    items={this.state.teams.map((team) => ({
-                        id: team.id,
-                        data: team.id,
-                        text: team.name
-                    }))}
-                    onSelect={this.onTeamChanged}
-                    selection={this.state.selection}
-                />
+                <TeamSelector project={this.state.projectInfo} />
                 <h2>Sprint Ending</h2>
                 <WorkItemGrid items={this.state.workItems} />
 
@@ -119,9 +110,5 @@ export class OverviewTab extends React.Component<{}, IOverviewTabState> {
                 <h2>Stories Removed from Sprint after Commitment</h2>
             </div>
         );
-    }
-
-    private onTeamChanged = (event: React.SyntheticEvent<HTMLElement>, item: IListBoxItem<string>): void => {
-        console.log("Team changed to " + item.data);
     }
 }

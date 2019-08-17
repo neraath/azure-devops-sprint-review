@@ -14,14 +14,19 @@ export interface ITeamSelectorState {
 
 export interface TeamSelectorProps {
     project: IProjectInfo | undefined;
+    onSelect : (team: WebApiTeam) => void;
 }
 
 export class TeamSelector extends React.Component<TeamSelectorProps, ITeamSelectorState> {
-    constructor(props: { project : IProjectInfo | undefined }) {
+    private onSelect : (team: WebApiTeam) => void;
+
+    constructor(props: TeamSelectorProps) {
         super(props);
 
         console.debug("CONSTRUCTOR");
         console.debug(props.project);
+
+        this.onSelect = props.onSelect;
 
         this.state = {
             projectInfo: props.project,
@@ -82,6 +87,10 @@ export class TeamSelector extends React.Component<TeamSelectorProps, ITeamSelect
     }
 
     private onTeamChanged = (event: React.SyntheticEvent<HTMLElement>, item: IListBoxItem<string>): void => {
-        console.log("Team changed to " + item.data);
+        console.log("Team changed to " + item.id);
+        let team = this.state.teams.find(x => x.id === item.id);
+        if (team) {
+            this.onSelect(team);
+        }
     }
 }

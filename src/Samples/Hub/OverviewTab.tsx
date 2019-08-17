@@ -101,7 +101,7 @@ export class OverviewTab extends React.Component<{}, IOverviewTabState> {
 
         return (
             <div className="sample-hub-section">
-                <TeamSelector project={this.state.projectInfo} />
+                <TeamSelector project={this.state.projectInfo} onSelect={(team : WebApiTeam) => alert("team selected: " + team.name)} />
                 <h2>Sprint Ending</h2>
                 <WorkItemGrid items={this.state.workItems} />
 

@@ -9,16 +9,28 @@ import { IListBoxItem } from "azure-devops-ui/ListBox";
 export interface ITeamSelectorState {
     projectInfo?: IProjectInfo;
     selection: ListSelection;
-    teams: WebApiTeam[];
+    teams: Team[];
 };
+
+export class Team {
+    id: string;
+    name: string;
+    text: string;
+
+    constructor(id: string, name: string) {
+        this.id = id;
+        this.name = name;
+        this.text = name;
+    }
+}
 
 export interface TeamSelectorProps {
     project: IProjectInfo | undefined;
-    onSelect : (team: WebApiTeam) => void;
+    onSelect : (team: Team) => void;
 }
 
 export class TeamSelector extends React.Component<TeamSelectorProps, ITeamSelectorState> {
-    private onSelect : (team: WebApiTeam) => void;
+    private onSelect : (team: Team) => void;
 
     constructor(props: TeamSelectorProps) {
         super(props);
@@ -55,7 +67,7 @@ export class TeamSelector extends React.Component<TeamSelectorProps, ITeamSelect
             console.debug("TeamSelector: initializeState with projectInfo");
             const coreService = getClient(CoreRestClient);
             let teamResults = await coreService.getTeams(this.state.projectInfo.id);
-            this.setState({ teams: teamResults });
+            this.setState({ teams: teamResults.map((webApiTeam) => new Team(webApiTeam.id, webApiTeam.name)) });
             this.state.selection.select(0);
             console.debug("team results");
             console.debug(teamResults);
@@ -73,20 +85,16 @@ export class TeamSelector extends React.Component<TeamSelectorProps, ITeamSelect
 
     public render(): JSX.Element {
         return (
-            <Dropdown<string>
+            <Dropdown<Team>
                 className="sample-picker"
-                items={this.state.teams.map((team) => ({
-                    id: team.id,
-                    data: team.id,
-                    text: team.name
-                }))}
+                items={this.state.teams}
                 onSelect={this.onTeamChanged}
                 selection={this.state.selection}
             />
         );
     }
 
-    private onTeamChanged = (event: React.SyntheticEvent<HTMLElement>, item: IListBoxItem<string>): void => {
+    private onTeamChanged = (event: React.SyntheticEvent<HTMLElement>, item: IListBoxItem<Team>): void => {
         console.log("Team changed to " + item.id);
         let team = this.state.teams.find(x => x.id === item.id);
         if (team) {

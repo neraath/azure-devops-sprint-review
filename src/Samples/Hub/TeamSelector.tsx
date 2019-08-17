@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import { ListSelection } from "azure-devops-ui/List";
-import { WebApiTeam, CoreRestClient, TeamContext } from "azure-devops-extension-api/Core";
+import { CoreRestClient } from "azure-devops-extension-api/Core";
 import { getClient, IProjectInfo } from "azure-devops-extension-api";
 import { Dropdown } from "azure-devops-ui/Dropdown";
 import { IListBoxItem } from "azure-devops-ui/ListBox";

@@ -48,39 +48,35 @@ export class TeamSelector extends React.Component<TeamSelectorProps, ITeamSelect
     }
 
     public componentDidMount() {
-        this.initializeState();
+        console.debug("TeamSelector: componentDidMount");
+        if (this.state.projectInfo) {
+            this.initializeState(this.state.projectInfo);
+        }
     }
 
     public componentWillReceiveProps(nextProps : TeamSelectorProps) {
         console.debug("TeamSelector: componentWillReceiveProps");
         console.debug(nextProps);
-        this.setState({ projectInfo: nextProps.project });
-        this.initializeState();
+
+        // Props may get resent from parent. Don't need to re-initialize state if the project is the same.
+        if (nextProps.project && nextProps.project !== this.state.projectInfo) {
+            console.debug("Projects differ. Initialize state.");
+            this.initializeState(nextProps.project);
+        }
     }
 
-    private async initializeState(): Promise<void> {
+    private async initializeState(projectInfo : IProjectInfo): Promise<void> {
         console.debug("TeamSelector: initializeState");
-        console.debug(this.state.projectInfo);
+        console.debug(projectInfo);
 
-        if (this.state.projectInfo)
-        {
-            console.debug("TeamSelector: initializeState with projectInfo");
-            const coreService = getClient(CoreRestClient);
-            let teamResults = await coreService.getTeams(this.state.projectInfo.id);
-            this.setState({ teams: teamResults.map((webApiTeam) => new Team(webApiTeam.id, webApiTeam.name)) });
-            this.state.selection.select(0);
-            console.debug("team results");
-            console.debug(teamResults);
-
-            let teamContext : TeamContext = { 
-                projectId: this.state.projectInfo.id,
-                project: '',
-                teamId: teamResults[0].id,
-                team: ''
-            };
-            console.debug("team context: ");
-            console.debug(teamContext);
-        }
+        console.debug("TeamSelector: initializeState with projectInfo");
+        const coreService = getClient(CoreRestClient);
+        let teamResults = await coreService.getTeams(projectInfo.id);
+        this.setState({ projectInfo: projectInfo, teams: teamResults.map((webApiTeam) => new Team(webApiTeam.id, webApiTeam.name)) });
+        this.state.selection.select(0); // Start by selecting the first item. TODO: Save last selected team.
+        console.debug("team results");
+        console.debug(teamResults);
+        this.onSelect(this.state.teams[0]);
     }
 
     public render(): JSX.Element {
@@ -94,10 +90,12 @@ export class TeamSelector extends React.Component<TeamSelectorProps, ITeamSelect
         );
     }
 
-    private onTeamChanged = (event: React.SyntheticEvent<HTMLElement>, item: IListBoxItem<Team>): void => {
+    private onTeamChanged = (event: React.SyntheticEvent<HTMLElement>, item: IListBoxItem<Team>) => {
         console.log("Team changed to " + item.id);
+        // Lookup the team since item.data is undefined
         let team = this.state.teams.find(x => x.id === item.id);
         if (team) {
+            console.debug("Passing team to subscribers");
             this.onSelect(team);
         }
     }

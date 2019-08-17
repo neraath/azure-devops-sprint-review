@@ -23,7 +23,6 @@ export interface IOverviewTabState {
     workItems: WorkItem[];
     workItemsAddedAfterSprintStart: WorkItem[];
     workItemsRemovedAfterSprintStart: WorkItem[];
-    teams: WebApiTeam[];
     projectInfo?: IProjectInfo;
 }
 
@@ -37,12 +36,11 @@ export class OverviewTab extends React.Component<{}, IOverviewTabState> {
             workItems: [],
             workItemsAddedAfterSprintStart: [],
             workItemsRemovedAfterSprintStart: [],
-            teams: [],
             selection: new ListSelection()
         };
     }
 
-    public componentDidMount() {
+    public componentWillMount() {
         this.initializeState();
     }
 
@@ -57,43 +55,6 @@ export class OverviewTab extends React.Component<{}, IOverviewTabState> {
             console.debug("Overview: initializeState with projectInfo");
             let projectInfo : IProjectInfo = project;
             this.setState({ projectName: projectInfo.name, projectInfo: projectInfo });
-
-            const coreService = getClient(CoreRestClient);
-            let teamResults = await coreService.getTeams(project.id);
-            this.setState({ teams: teamResults });
-            this.state.selection.select(0);
-
-            let teamContext : TeamContext = { 
-                projectId: project.id,
-                project: '',
-                teamId: teamResults[0].id,
-                team: ''
-            };
-
-            let iterationService = getClient(WorkRestClient);
-            let currentIteration = await iterationService.getTeamIterations(teamContext, "Current");
-            let allIterations = await iterationService.getTeamIterations(teamContext);
-            console.debug("currentIteration:");
-            console.debug(currentIteration);
-            console.debug("all iterations");
-            console.debug(allIterations);
-
-            const client = getClient(WorkItemTrackingRestClient);
-            let endOfFirstDateOfSprint = moment('2019-07-27 23:59');
-            let wiqlString : Wiql = { query: `SELECT [System.Id] FROM workitems WHERE [System.TeamProject] = '${project.name}' AND [System.AreaPath] = '${this.state.areaPath}' AND [System.WorkItemType] = 'User Story' AND [System.IterationPath] = '${this.state.iterationPath}' ASOF '${endOfFirstDateOfSprint.format('M/D/Y HH:mm')}'` };
-            const idResults = await client.queryByWiql(wiqlString, project.name);
-            console.debug("id results: ");
-            console.debug(idResults);
-
-            if (idResults.workItems.length == 0) return;
-
-            const columns = ['System.Title','System.State','System.CreatedDate'];
-            const results = await client.getWorkItems(idResults.workItems.map(x => x.id), project.name, columns);
-
-            this.setState({ workItems: results });
-
-            //console.debug("Results Obtained: ");
-            //console.debug(results);
         }
     }
 
@@ -101,7 +62,7 @@ export class OverviewTab extends React.Component<{}, IOverviewTabState> {
 
         return (
             <div className="sample-hub-section">
-                <TeamSelector project={this.state.projectInfo} onSelect={(team : Team) => alert("team selected: " + team.name)} />
+                <TeamSelector project={this.state.projectInfo} onSelect={(team : Team) => this.onSelectTeam(team)} />
                 <h2>Sprint Ending</h2>
                 <WorkItemGrid items={this.state.workItems} />
 
@@ -110,5 +71,43 @@ export class OverviewTab extends React.Component<{}, IOverviewTabState> {
                 <h2>Stories Removed from Sprint after Commitment</h2>
             </div>
         );
+    }
+
+    private async onSelectTeam(team : Team) {
+        console.debug("Overview: onSelectTeam");
+        console.debug(team);
+        console.debug(this.state.projectInfo);
+        if (!team) return;
+        if (!this.state.projectInfo) return;
+        let project = this.state.projectInfo;
+
+        let teamContext : TeamContext = { 
+            projectId: project.id,
+            project: '',
+            teamId: team.id,
+            team: ''
+        };
+
+        let iterationService = getClient(WorkRestClient);
+        let currentIteration = await iterationService.getTeamIterations(teamContext, "Current");
+        let allIterations = await iterationService.getTeamIterations(teamContext);
+        console.debug("currentIteration:");
+        console.debug(currentIteration);
+        console.debug("all iterations");
+        console.debug(allIterations);
+
+        const client = getClient(WorkItemTrackingRestClient);
+        let endOfFirstDateOfSprint = moment('2019-07-27 23:59');
+        let wiqlString : Wiql = { query: `SELECT [System.Id] FROM workitems WHERE [System.TeamProject] = '${project.name}' AND [System.AreaPath] = '${this.state.areaPath}' AND [System.WorkItemType] = 'User Story' AND [System.IterationPath] = '${this.state.iterationPath}' ASOF '${endOfFirstDateOfSprint.format('M/D/Y HH:mm')}'` };
+        const idResults = await client.queryByWiql(wiqlString, project.name);
+        console.debug("id results: ");
+        console.debug(idResults);
+
+        if (idResults.workItems.length == 0) return;
+
+        const columns = ['System.Title','System.State','System.CreatedDate'];
+        const results = await client.getWorkItems(idResults.workItems.map(x => x.id), project.name, columns);
+
+        this.setState({ workItems: results });
     }
 }

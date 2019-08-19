@@ -77,6 +77,7 @@ export class IterationSelector extends React.Component<IterationSelectorProps, I
     private async initializeState(projectInfo : IProjectInfo, team: Team): Promise<void> {
         console.debug("IterationSelector: initializeState");
         console.debug(projectInfo);
+        console.debug(team);
 
         console.debug("IterationSelector: initializeState with projectInfo");
         let teamContext : TeamContext = { 
@@ -94,7 +95,7 @@ export class IterationSelector extends React.Component<IterationSelectorProps, I
         console.debug("all iterations");
         console.debug(allIterations);
 
-        this.setState({ projectInfo: projectInfo, iterations: allIterations.map((iteration) => new Iteration(iteration.id, iteration.name, iteration.path)) });
+        this.setState({ projectInfo: projectInfo, team: team, iterations: allIterations.map((iteration) => new Iteration(iteration.id, iteration.name, iteration.path)) });
         let currentIterationId = 0;
         if (currentIteration.length > 0) {
             let currentIterationFromResults = this.state.iterations.find(x => x.id == currentIteration[0].id);

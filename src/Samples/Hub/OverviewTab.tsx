@@ -23,6 +23,7 @@ export interface IOverviewTabState {
     workItemsAddedAfterSprintStart: WorkItem[];
     workItemsRemovedAfterSprintStart: WorkItem[];
     projectInfo?: IProjectInfo;
+    iteration?: Iteration;
     team?: Team;
 }
 
@@ -79,26 +80,36 @@ export class OverviewTab extends React.Component<{}, IOverviewTabState> {
         console.debug(team);
         console.debug(this.state.projectInfo);
         if (!team) return;
-        if (!this.state.projectInfo) return;
-        let project = this.state.projectInfo;
         this.setState({ team: team });
 
+        this.fetchWorkItems(this.state.projectInfo, team, this.state.iteration);
+    }
+
+    private async onSelectIteration(iteration : Iteration) {
+        console.debug("Overview: onSelectIteration");
+        console.debug(iteration);
+        if (!iteration) return;
+        this.setState({ iteration: iteration });
+
+        this.fetchWorkItems(this.state.projectInfo, this.state.team, iteration);
+    }
+
+    private async fetchWorkItems(project?: IProjectInfo, team?: Team, iteration?: Iteration) {
+        console.debug("Overview: fetchWorkItems");
+        if (!project || !team || !iteration) return;
+
+        console.debug("Overview: fetchWorkItems with project and team");
         let teamContext : TeamContext = { 
             projectId: project.id,
             project: '',
             teamId: team.id,
             team: ''
         };
+        console.debug(teamContext);
 
-        let iterationService = getClient(WorkRestClient);
-        let currentIteration = await iterationService.getTeamIterations(teamContext, "Current");
-        let allIterations = await iterationService.getTeamIterations(teamContext);
-        console.debug("currentIteration:");
-        console.debug(currentIteration);
-        console.debug("all iterations");
-        console.debug(allIterations);
-
-        let teamFieldValues = await iterationService.getTeamFieldValues(teamContext);
+        let workService = getClient(WorkRestClient);
+        let teamFieldValues = await workService.getTeamFieldValues(teamContext);
+        console.debug("Overview: fetched teamFieldValues")
         console.debug(teamFieldValues);
 
         const client = getClient(WorkItemTrackingRestClient);
@@ -109,6 +120,7 @@ export class OverviewTab extends React.Component<{}, IOverviewTabState> {
         console.debug(idResults);
 
         if (idResults.workItems.length == 0) {
+            console.debug("No work items. Setting empty.");
             this.setState({ workItems: [] });
             return;
         }
@@ -117,9 +129,5 @@ export class OverviewTab extends React.Component<{}, IOverviewTabState> {
         const results = await client.getWorkItems(idResults.workItems.map(x => x.id), project.name, columns);
 
         this.setState({ workItems: results });
-    }
-
-    private async onSelectIteration(iteration : Iteration) {
-        alert('New Iteration Selected: ' + iteration.name);
     }
 }

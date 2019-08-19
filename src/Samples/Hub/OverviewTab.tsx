@@ -11,17 +11,18 @@ import { ListSelection } from "azure-devops-ui/List";
 
 import { WorkItemGrid } from "./WorkItemGrid";
 import { TeamSelector, Team } from "./TeamSelector";
+import { IterationSelector, Iteration } from "./IterationSelector";
 
 export interface IOverviewTabState {
     projectName?: string;
-    iterationPath?: string;
-    areaPath?: string;
     extensionData?: string;
     selection: ListSelection;
     workItems: WorkItem[];
     workItemsAddedAfterSprintStart: WorkItem[];
     workItemsRemovedAfterSprintStart: WorkItem[];
     projectInfo?: IProjectInfo;
+    iteration?: Iteration;
+    team?: Team;
 }
 
 export class OverviewTab extends React.Component<{}, IOverviewTabState> {
@@ -29,8 +30,6 @@ export class OverviewTab extends React.Component<{}, IOverviewTabState> {
         super(props);
 
         this.state = {
-            iterationPath: "Azure DevOps Sprint Review\\Iteration 1",
-            areaPath: "Azure DevOps Sprint Review\\Core",
             workItems: [],
             workItemsAddedAfterSprintStart: [],
             workItemsRemovedAfterSprintStart: [],
@@ -61,6 +60,7 @@ export class OverviewTab extends React.Component<{}, IOverviewTabState> {
         return (
             <div className="sample-hub-section">
                 <TeamSelector project={this.state.projectInfo} onSelect={(team : Team) => this.onSelectTeam(team)} />
+                <IterationSelector project={this.state.projectInfo} team={this.state.team} onSelect={(iteration : Iteration) => this.onSelectIteration(iteration)} />
                 <h2>Sprint Ending</h2>
                 <WorkItemGrid items={this.state.workItems} />
 
@@ -76,35 +76,46 @@ export class OverviewTab extends React.Component<{}, IOverviewTabState> {
         console.debug(team);
         console.debug(this.state.projectInfo);
         if (!team) return;
-        if (!this.state.projectInfo) return;
-        let project = this.state.projectInfo;
+        this.setState({ team: team });
 
+        this.fetchWorkItems(this.state.projectInfo, team, this.state.iteration);
+    }
+
+    private async onSelectIteration(iteration : Iteration) {
+        console.debug("Overview: onSelectIteration");
+        console.debug(iteration);
+        if (!iteration) return;
+        this.setState({ iteration: iteration });
+
+        this.fetchWorkItems(this.state.projectInfo, this.state.team, iteration);
+    }
+
+    private async fetchWorkItems(project?: IProjectInfo, team?: Team, iteration?: Iteration) {
+        console.debug("Overview: fetchWorkItems");
+        if (!project || !team || !iteration) return;
+
+        console.debug("Overview: fetchWorkItems with project and team");
         let teamContext : TeamContext = { 
             projectId: project.id,
             project: '',
             teamId: team.id,
             team: ''
         };
+        console.debug(teamContext);
 
-        let iterationService = getClient(WorkRestClient);
-        let currentIteration = await iterationService.getTeamIterations(teamContext, "Current");
-        let allIterations = await iterationService.getTeamIterations(teamContext);
-        console.debug("currentIteration:");
-        console.debug(currentIteration);
-        console.debug("all iterations");
-        console.debug(allIterations);
-
-        let teamFieldValues = await iterationService.getTeamFieldValues(teamContext);
+        let workService = getClient(WorkRestClient);
+        let teamFieldValues = await workService.getTeamFieldValues(teamContext);
+        console.debug("Overview: fetched teamFieldValues")
         console.debug(teamFieldValues);
 
         const client = getClient(WorkItemTrackingRestClient);
-        let endOfFirstDateOfSprint = moment('2019-07-27 23:59');
-        let wiqlString : Wiql = { query: `SELECT [System.Id] FROM workitems WHERE [System.TeamProject] = '${project.name}' AND [System.AreaPath] = '${teamFieldValues.defaultValue}' AND [System.WorkItemType] = 'User Story' AND [System.IterationPath] = '${this.state.iterationPath}' ASOF '${endOfFirstDateOfSprint.format('M/D/Y HH:mm')}'` };
+        let wiqlString : Wiql = { query: `SELECT [System.Id] FROM workitems WHERE [System.TeamProject] = '${project.name}' AND [System.AreaPath] = '${teamFieldValues.defaultValue}' AND [System.WorkItemType] = 'User Story' AND [System.IterationPath] = '${iteration.path}' ASOF '${iteration.endDate.format('M/D/Y HH:mm')}'` };
         const idResults = await client.queryByWiql(wiqlString, project.name);
         console.debug("id results: ");
         console.debug(idResults);
 
         if (idResults.workItems.length == 0) {
+            console.debug("No work items. Setting empty.");
             this.setState({ workItems: [] });
             return;
         }

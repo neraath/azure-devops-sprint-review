@@ -15,8 +15,6 @@ import { IterationSelector, Iteration } from "./IterationSelector";
 
 export interface IOverviewTabState {
     projectName?: string;
-    iterationPath?: string;
-    areaPath?: string;
     extensionData?: string;
     selection: ListSelection;
     workItems: WorkItem[];
@@ -32,8 +30,6 @@ export class OverviewTab extends React.Component<{}, IOverviewTabState> {
         super(props);
 
         this.state = {
-            iterationPath: "Azure DevOps Sprint Review\\Iteration 1",
-            areaPath: "Azure DevOps Sprint Review\\Core",
             workItems: [],
             workItemsAddedAfterSprintStart: [],
             workItemsRemovedAfterSprintStart: [],
@@ -114,7 +110,7 @@ export class OverviewTab extends React.Component<{}, IOverviewTabState> {
 
         const client = getClient(WorkItemTrackingRestClient);
         let endOfFirstDateOfSprint = moment('2019-07-27 23:59');
-        let wiqlString : Wiql = { query: `SELECT [System.Id] FROM workitems WHERE [System.TeamProject] = '${project.name}' AND [System.AreaPath] = '${teamFieldValues.defaultValue}' AND [System.WorkItemType] = 'User Story' AND [System.IterationPath] = '${this.state.iterationPath}' ASOF '${endOfFirstDateOfSprint.format('M/D/Y HH:mm')}'` };
+        let wiqlString : Wiql = { query: `SELECT [System.Id] FROM workitems WHERE [System.TeamProject] = '${project.name}' AND [System.AreaPath] = '${teamFieldValues.defaultValue}' AND [System.WorkItemType] = 'User Story' AND [System.IterationPath] = '${iteration.path}' ASOF '${endOfFirstDateOfSprint.format('M/D/Y HH:mm')}'` };
         const idResults = await client.queryByWiql(wiqlString, project.name);
         console.debug("id results: ");
         console.debug(idResults);

@@ -11,6 +11,7 @@ import { ListSelection } from "azure-devops-ui/List";
 
 import { WorkItemGrid } from "./WorkItemGrid";
 import { TeamSelector, Team } from "./TeamSelector";
+import { IterationSelector, Iteration } from "./IterationSelector";
 
 export interface IOverviewTabState {
     projectName?: string;
@@ -22,6 +23,7 @@ export interface IOverviewTabState {
     workItemsAddedAfterSprintStart: WorkItem[];
     workItemsRemovedAfterSprintStart: WorkItem[];
     projectInfo?: IProjectInfo;
+    team?: Team;
 }
 
 export class OverviewTab extends React.Component<{}, IOverviewTabState> {
@@ -61,6 +63,7 @@ export class OverviewTab extends React.Component<{}, IOverviewTabState> {
         return (
             <div className="sample-hub-section">
                 <TeamSelector project={this.state.projectInfo} onSelect={(team : Team) => this.onSelectTeam(team)} />
+                <IterationSelector project={this.state.projectInfo} team={this.state.team} onSelect={(iteration : Iteration) => this.onSelectIteration(iteration)} />
                 <h2>Sprint Ending</h2>
                 <WorkItemGrid items={this.state.workItems} />
 
@@ -78,6 +81,7 @@ export class OverviewTab extends React.Component<{}, IOverviewTabState> {
         if (!team) return;
         if (!this.state.projectInfo) return;
         let project = this.state.projectInfo;
+        this.setState({ team: team });
 
         let teamContext : TeamContext = { 
             projectId: project.id,
@@ -113,5 +117,9 @@ export class OverviewTab extends React.Component<{}, IOverviewTabState> {
         const results = await client.getWorkItems(idResults.workItems.map(x => x.id), project.name, columns);
 
         this.setState({ workItems: results });
+    }
+
+    private async onSelectIteration(iteration : Iteration) {
+        alert('New Iteration Selected: ' + iteration.name);
     }
 }

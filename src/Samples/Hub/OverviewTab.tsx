@@ -109,8 +109,7 @@ export class OverviewTab extends React.Component<{}, IOverviewTabState> {
         console.debug(teamFieldValues);
 
         const client = getClient(WorkItemTrackingRestClient);
-        let endOfFirstDateOfSprint = moment('2019-07-27 23:59');
-        let wiqlString : Wiql = { query: `SELECT [System.Id] FROM workitems WHERE [System.TeamProject] = '${project.name}' AND [System.AreaPath] = '${teamFieldValues.defaultValue}' AND [System.WorkItemType] = 'User Story' AND [System.IterationPath] = '${iteration.path}' ASOF '${endOfFirstDateOfSprint.format('M/D/Y HH:mm')}'` };
+        let wiqlString : Wiql = { query: `SELECT [System.Id] FROM workitems WHERE [System.TeamProject] = '${project.name}' AND [System.AreaPath] = '${teamFieldValues.defaultValue}' AND [System.WorkItemType] = 'User Story' AND [System.IterationPath] = '${iteration.path}' ASOF '${iteration.endDate.format('M/D/Y HH:mm')}'` };
         const idResults = await client.queryByWiql(wiqlString, project.name);
         console.debug("id results: ");
         console.debug(idResults);

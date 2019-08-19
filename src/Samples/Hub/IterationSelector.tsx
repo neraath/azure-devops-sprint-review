@@ -7,6 +7,8 @@ import { Dropdown } from "azure-devops-ui/Dropdown";
 import { IListBoxItem } from "azure-devops-ui/ListBox";
 import { WorkRestClient } from "azure-devops-extension-api/Work";
 import { Team } from "./TeamSelector";
+import { Moment } from "moment";
+import moment = require("moment");
 
 export interface IIterationSelectorState {
     projectInfo?: IProjectInfo;
@@ -20,12 +22,16 @@ export class Iteration {
     name: string;
     text: string;
     path: string;
+    startDate: Moment;
+    endDate: Moment;
 
-    constructor(id: string, name: string, path: string) {
+    constructor(id: string, name: string, path: string, startDate: Moment, endDate: Moment) {
         this.id = id;
         this.name = name;
         this.text = name;
         this.path = path;
+        this.startDate = startDate;
+        this.endDate = endDate;
     }
 }
 
@@ -95,7 +101,11 @@ export class IterationSelector extends React.Component<IterationSelectorProps, I
         console.debug("all iterations");
         console.debug(allIterations);
 
-        this.setState({ projectInfo: projectInfo, team: team, iterations: allIterations.map((iteration) => new Iteration(iteration.id, iteration.name, iteration.path)) });
+        this.setState({ 
+            projectInfo: projectInfo, 
+            team: team, 
+            iterations: allIterations.map((iteration) => 
+                new Iteration(iteration.id, iteration.name, iteration.path, moment(iteration.attributes.startDate), moment(iteration.attributes.finishDate))) });
         let currentIterationId = 0;
         if (currentIteration.length > 0) {
             let currentIterationFromResults = this.state.iterations.find(x => x.id == currentIteration[0].id);

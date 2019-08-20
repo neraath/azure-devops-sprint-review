@@ -35,9 +35,6 @@ export class TeamSelector extends React.Component<TeamSelectorProps, ITeamSelect
     constructor(props: TeamSelectorProps) {
         super(props);
 
-        console.debug("CONSTRUCTOR");
-        console.debug(props.project);
-
         this.onSelect = props.onSelect;
 
         this.state = {
@@ -56,26 +53,20 @@ export class TeamSelector extends React.Component<TeamSelectorProps, ITeamSelect
 
     public componentWillReceiveProps(nextProps : TeamSelectorProps) {
         console.debug("TeamSelector: componentWillReceiveProps");
-        console.debug(nextProps);
 
         // Props may get resent from parent. Don't need to re-initialize state if the project is the same.
         if (nextProps.project && nextProps.project !== this.state.projectInfo) {
-            console.debug("Projects differ. Initialize state.");
             this.initializeState(nextProps.project);
         }
     }
 
     private async initializeState(projectInfo : IProjectInfo): Promise<void> {
         console.debug("TeamSelector: initializeState");
-        console.debug(projectInfo);
 
-        console.debug("TeamSelector: initializeState with projectInfo");
         const coreService = getClient(CoreRestClient);
         let teamResults = await coreService.getTeams(projectInfo.id);
         this.setState({ projectInfo: projectInfo, teams: teamResults.map((webApiTeam) => new Team(webApiTeam.id, webApiTeam.name)) });
         this.state.selection.select(0); // Start by selecting the first item. TODO: Save last selected team.
-        console.debug("team results");
-        console.debug(teamResults);
         this.onSelect(this.state.teams[0]);
     }
 
@@ -95,7 +86,6 @@ export class TeamSelector extends React.Component<TeamSelectorProps, ITeamSelect
         // Lookup the team since item.data is undefined
         let team = this.state.teams.find(x => x.id === item.id);
         if (team) {
-            console.debug("Passing team to subscribers");
             this.onSelect(team);
         }
     }

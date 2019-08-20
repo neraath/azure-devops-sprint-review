@@ -69,23 +69,18 @@ export class IterationSelector extends React.Component<IterationSelectorProps, I
 
     public componentWillReceiveProps(nextProps : IterationSelectorProps) {
         console.debug("IterationSelector: componentWillReceiveProps");
-        console.debug(nextProps);
 
         // Props may get resent from parent. Don't need to re-initialize state if the project is the same.
         if (nextProps.project && nextProps.team && (
             nextProps.project !== this.state.projectInfo ||
             nextProps.team !== this.state.team)) {
-            console.debug("Project or team differ. Initialize state.");
             this.initializeState(nextProps.project, nextProps.team);
         }
     }
 
     private async initializeState(projectInfo : IProjectInfo, team: Team): Promise<void> {
         console.debug("IterationSelector: initializeState");
-        console.debug(projectInfo);
-        console.debug(team);
 
-        console.debug("IterationSelector: initializeState with projectInfo");
         let teamContext : TeamContext = { 
             projectId: projectInfo.id,
             project: '',
@@ -96,10 +91,6 @@ export class IterationSelector extends React.Component<IterationSelectorProps, I
         let iterationService = getClient(WorkRestClient);
         let currentIteration = await iterationService.getTeamIterations(teamContext, "Current");
         let allIterations = await iterationService.getTeamIterations(teamContext);
-        console.debug("currentIteration:");
-        console.debug(currentIteration);
-        console.debug("all iterations");
-        console.debug(allIterations);
 
         this.setState({ 
             projectInfo: projectInfo, 
@@ -133,7 +124,6 @@ export class IterationSelector extends React.Component<IterationSelectorProps, I
         // Lookup the iteration since item.data is undefined
         let iteration = this.state.iterations.find(x => x.id === item.id);
         if (iteration) {
-            console.debug("Passing iteration to subscribers");
             this.onSelect(iteration);
         }
     }

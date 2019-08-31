@@ -5,7 +5,7 @@ import { SprintReviewGridBase, SprintReviewGridBaseProps } from "./SprintReviewG
 import moment = require("moment");
 import { Team } from "./TeamSelector";
 
-export class PostSprintCommitmentGrid extends SprintReviewGridBase {
+export class StoriesAddedAfterSprintCommitmentGrid extends SprintReviewGridBase {
     constructor(props: SprintReviewGridBaseProps) {
         super(props);
     }

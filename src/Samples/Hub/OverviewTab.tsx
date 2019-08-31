@@ -8,8 +8,9 @@ import { ListSelection } from "azure-devops-ui/List";
 
 import { TeamSelector, Team } from "./TeamSelector";
 import { IterationSelector, Iteration } from "./IterationSelector";
-import { PostSprintCommitmentGrid } from "./PostSprintCommitmentGrid";
+import { StoriesAddedAfterSprintCommitmentGrid } from "./StoriesAddedAfterSprintCommitmentGrid";
 import { SprintEndingGrid } from "./SprintEndingGrid";
+import { StoriesRemovedAfterSprintCommitmentGrid } from "./StoriesRemovedAfterSprintCommitmentGrid";
 
 export interface IOverviewTabState {
     projectName?: string;
@@ -62,9 +63,10 @@ export class OverviewTab extends React.Component<{}, IOverviewTabState> {
                 <SprintEndingGrid project={this.state.projectInfo} iteration={this.state.iteration} team={this.state.team} />
 
                 <h2>Stories Added to Sprint after Commitment</h2>
-                <PostSprintCommitmentGrid project={this.state.projectInfo} iteration={this.state.iteration} team={this.state.team} />
+                <StoriesAddedAfterSprintCommitmentGrid project={this.state.projectInfo} iteration={this.state.iteration} team={this.state.team} />
 
                 <h2>Stories Removed from Sprint after Commitment</h2>
+                <StoriesRemovedAfterSprintCommitmentGrid project={this.state.projectInfo} iteration={this.state.iteration} team={this.state.team} />
             </div>
         );
     }

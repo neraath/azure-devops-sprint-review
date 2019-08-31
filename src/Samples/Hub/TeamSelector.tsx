@@ -1,8 +1,9 @@
 import * as React from "react";
+import * as SDK from "azure-devops-extension-sdk";
 
 import { ListSelection } from "azure-devops-ui/List";
 import { CoreRestClient } from "azure-devops-extension-api/Core";
-import { getClient, IProjectInfo } from "azure-devops-extension-api";
+import { getClient, IProjectInfo, IExtensionDataManager, IExtensionDataService, CommonServiceIds } from "azure-devops-extension-api";
 import { Dropdown } from "azure-devops-ui/Dropdown";
 import { IListBoxItem } from "azure-devops-ui/ListBox";
 
@@ -30,7 +31,9 @@ export interface TeamSelectorProps {
 }
 
 export class TeamSelector extends React.Component<TeamSelectorProps, ITeamSelectorState> {
+    private readonly TeamExtensionId = "selected-team";
     private onSelect : (team: Team) => void;
+    private _dataManager?: IExtensionDataManager;
 
     constructor(props: TeamSelectorProps) {
         super(props);
@@ -66,7 +69,30 @@ export class TeamSelector extends React.Component<TeamSelectorProps, ITeamSelect
         const coreService = getClient(CoreRestClient);
         let teamResults = await coreService.getTeams(projectInfo.id);
         this.setState({ projectInfo: projectInfo, teams: teamResults.map((webApiTeam) => new Team(webApiTeam.id, webApiTeam.name)) });
-        this.state.selection.select(0); // Start by selecting the first item. TODO: Save last selected team.
+
+        const accessToken = await SDK.getAccessToken();
+        const extDataService = await SDK.getService<IExtensionDataService>(CommonServiceIds.ExtensionDataService);
+        this._dataManager = await extDataService.getExtensionDataManager(SDK.getExtensionContext().id, accessToken);
+
+        this._dataManager.getValue<Team>(this.TeamExtensionId).then((data) => {
+            console.debug("TeamSelector: Checking for previous team completed");
+            console.debug(data);
+            if (data) {
+                let indexOfTeam = this.state.teams.findIndex(x => x.id == data.id);
+                this.state.selection.select(indexOfTeam);
+                this.onSelect(data);
+            } else {
+                this.selecteDefaultTeam();
+            }
+        }, () => {
+            console.debug("TeamSelector: Could not fulfill promise to identify previous team");
+            this.selecteDefaultTeam();
+        });
+        
+    }
+
+    private selecteDefaultTeam() {
+        this.state.selection.select(0); // Start by selecting the first item.
         this.onSelect(this.state.teams[0]);
     }
 
@@ -86,7 +112,11 @@ export class TeamSelector extends React.Component<TeamSelectorProps, ITeamSelect
         // Lookup the team since item.data is undefined
         let team = this.state.teams.find(x => x.id === item.id);
         if (team) {
-            this.onSelect(team);
+            this._dataManager!.setValue<Team>(this.TeamExtensionId, team).then(() => {
+                if (team) {
+                    this.onSelect(team);
+                }
+            });
         }
     }
 }

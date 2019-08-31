@@ -1,12 +1,6 @@
-import * as React from "react";
-
-import { IProjectInfo, getClient } from "azure-devops-extension-api";
+import { IProjectInfo } from "azure-devops-extension-api";
 import { Iteration } from "./IterationSelector";
-import { Team } from "./TeamSelector";
-import { TeamContext } from "azure-devops-extension-api/Core";
-import { WorkRestClient } from "azure-devops-extension-api/Work";
-import { WorkItemTrackingRestClient, Wiql, WorkItem } from "azure-devops-extension-api/WorkItemTracking";
-import { WorkItemGrid } from "./WorkItemGrid";
+import { Wiql } from "azure-devops-extension-api/WorkItemTracking";
 import { SprintReviewGridBase, SprintReviewGridBaseProps } from "./SprintReviewGridBase";
 
 export class PostSprintCommitmentGrid extends SprintReviewGridBase {

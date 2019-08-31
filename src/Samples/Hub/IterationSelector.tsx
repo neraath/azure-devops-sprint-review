@@ -1,8 +1,9 @@
 import * as React from "react";
+import * as SDK from "azure-devops-extension-sdk";
 
 import { ListSelection } from "azure-devops-ui/List";
 import { CoreRestClient, TeamContext } from "azure-devops-extension-api/Core";
-import { getClient, IProjectInfo } from "azure-devops-extension-api";
+import { getClient, IProjectInfo, IExtensionDataService, CommonServiceIds, IExtensionDataManager } from "azure-devops-extension-api";
 import { Dropdown } from "azure-devops-ui/Dropdown";
 import { IListBoxItem } from "azure-devops-ui/ListBox";
 import { WorkRestClient } from "azure-devops-extension-api/Work";
@@ -22,10 +23,10 @@ export class Iteration {
     name: string;
     text: string;
     path: string;
-    startDate: Moment;
-    endDate: Moment;
+    startDate: Date;
+    endDate: Date;
 
-    constructor(id: string, name: string, path: string, startDate: Moment, endDate: Moment) {
+    constructor(id: string, name: string, path: string, startDate: Date, endDate: Date) {
         this.id = id;
         this.name = name;
         this.text = name;
@@ -42,13 +43,12 @@ export interface IterationSelectorProps {
 }
 
 export class IterationSelector extends React.Component<IterationSelectorProps, IIterationSelectorState> {
+    private readonly IterationExtensionId = "selected-iteration";
     private onSelect : (iteration: Iteration) => void;
+    private _dataManager?: IExtensionDataManager;
 
     constructor(props: IterationSelectorProps) {
         super(props);
-
-        console.debug("CONSTRUCTOR");
-        console.debug(props.project);
 
         this.onSelect = props.onSelect;
 
@@ -61,15 +61,12 @@ export class IterationSelector extends React.Component<IterationSelectorProps, I
     }
 
     public componentDidMount() {
-        console.debug("IterationSelector: componentDidMount");
         if (this.state.projectInfo && this.state.team) {
             this.initializeState(this.state.projectInfo, this.state.team);
         }
     }
 
     public componentWillReceiveProps(nextProps : IterationSelectorProps) {
-        console.debug("IterationSelector: componentWillReceiveProps");
-
         // Props may get resent from parent. Don't need to re-initialize state if the project is the same.
         if (nextProps.project && nextProps.team && (
             nextProps.project !== this.state.projectInfo ||
@@ -79,8 +76,6 @@ export class IterationSelector extends React.Component<IterationSelectorProps, I
     }
 
     private async initializeState(projectInfo : IProjectInfo, team: Team): Promise<void> {
-        console.debug("IterationSelector: initializeState");
-
         let teamContext : TeamContext = { 
             projectId: projectInfo.id,
             project: '',
@@ -89,14 +84,37 @@ export class IterationSelector extends React.Component<IterationSelectorProps, I
         };
         
         let iterationService = getClient(WorkRestClient);
-        let currentIteration = await iterationService.getTeamIterations(teamContext, "Current");
         let allIterations = await iterationService.getTeamIterations(teamContext);
 
         this.setState({ 
             projectInfo: projectInfo, 
             team: team, 
             iterations: allIterations.map((iteration) => 
-                new Iteration(iteration.id, iteration.name, iteration.path, moment(iteration.attributes.startDate), moment(iteration.attributes.finishDate))) });
+                new Iteration(iteration.id, iteration.name, iteration.path, iteration.attributes.startDate, iteration.attributes.finishDate)) });
+
+        const accessToken = await SDK.getAccessToken();
+        const extDataService = await SDK.getService<IExtensionDataService>(CommonServiceIds.ExtensionDataService);
+        this._dataManager = await extDataService.getExtensionDataManager(SDK.getExtensionContext().id, accessToken);
+
+        this._dataManager.getValue<Iteration>(this.IterationExtensionId).then((data) => {
+            console.debug("IterationSelector: Checking for previous iteration selected");
+            console.debug(data);
+            if (data) {
+                let indexOfIteration = this.state.iterations.findIndex(x => x.id == data.id);
+                this.state.selection.select(indexOfIteration);
+                this.onSelect(data);
+            } else {
+                this.selectCurrentIteration(iterationService, teamContext);
+            }
+        }, () => {
+            this.selectCurrentIteration(iterationService, teamContext);
+        });
+        
+    }
+
+    private async selectCurrentIteration(iterationService : WorkRestClient, teamContext : TeamContext) {
+        let currentIteration = await iterationService.getTeamIterations(teamContext, "Current");
+
         let currentIterationId = 0;
         if (currentIteration.length > 0) {
             let currentIterationFromResults = this.state.iterations.find(x => x.id == currentIteration[0].id);
@@ -104,6 +122,7 @@ export class IterationSelector extends React.Component<IterationSelectorProps, I
                 currentIterationId = this.state.iterations.indexOf(currentIterationFromResults);
             }
         }
+
         this.state.selection.select(currentIterationId); // Start by selecting the current iteration. TODO: Save last selected team.
         this.onSelect(this.state.iterations[currentIterationId]);
     }
@@ -113,18 +132,23 @@ export class IterationSelector extends React.Component<IterationSelectorProps, I
             <Dropdown<Iteration>
                 className="sample-picker"
                 items={this.state.iterations}
-                onSelect={this.onTeamChanged}
+                onSelect={this.onIterationChanged}
                 selection={this.state.selection}
             />
         );
     }
 
-    private onTeamChanged = (event: React.SyntheticEvent<HTMLElement>, item: IListBoxItem<Iteration>) => {
+    private onIterationChanged = (event: React.SyntheticEvent<HTMLElement>, item: IListBoxItem<Iteration>) => {
         console.log("Iteration changed to " + item.id);
         // Lookup the iteration since item.data is undefined
         let iteration = this.state.iterations.find(x => x.id === item.id);
+        console.debug(iteration);
         if (iteration) {
-            this.onSelect(iteration);
+            this._dataManager!.setValue<Iteration>(this.IterationExtensionId, iteration).then(() => {
+                if (iteration) {
+                    this.onSelect(iteration);
+                }
+            });
         }
     }
 }

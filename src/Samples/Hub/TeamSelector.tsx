@@ -75,7 +75,7 @@ export class TeamSelector extends React.Component<TeamSelectorProps, ITeamSelect
         this._dataManager = await extDataService.getExtensionDataManager(SDK.getExtensionContext().id, accessToken);
 
         this._dataManager.getValue<Team>(this.TeamExtensionId).then((data) => {
-            console.debug("TeamSelector: Checking for previous team completed");
+            console.debug("TeamSelector: Checking for previous team selected");
             console.debug(data);
             if (data) {
                 let indexOfTeam = this.state.teams.findIndex(x => x.id == data.id);

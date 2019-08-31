@@ -11,7 +11,7 @@ export class StoriesRemovedAfterSprintCommitmentGrid extends SprintReviewGridBas
     }
 
     protected async getWorkItems(project : IProjectInfo, team : Team, iteration : Iteration) : Promise<WorkItem[]> {
-        let workItemsAtCommitment = await this.queryService.getWorkItemsForIteration(project, team, iteration, iteration.startDate.add(moment.duration(1, "day")));
+        let workItemsAtCommitment = await this.queryService.getWorkItemsForIteration(project, team, iteration, moment(iteration.startDate).add(moment.duration(1, "day")).toDate());
         let workItemsAtSprintEnd = await this.queryService.getWorkItemsForIteration(project, team, iteration, iteration.endDate);
         let workItemsRemoved = workItemsAtCommitment.filter(item => !this.doesWorkItemExistInCollection(item, workItemsAtSprintEnd));
         return workItemsRemoved;

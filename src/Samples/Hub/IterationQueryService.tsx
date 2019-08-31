@@ -5,10 +5,11 @@ import { TeamContext } from "azure-devops-extension-api/Core";
 import { WorkItemTrackingRestClient, Wiql, WorkItem } from "azure-devops-extension-api/WorkItemTracking";
 import { Iteration } from "./IterationSelector";
 import { Moment } from "moment";
+import moment = require("moment");
 
 export class IterationQueryService {
 
-    private getWiqlQuery(project : IProjectInfo, iteration : Iteration, areaPath : string, asOf? : Moment) : Wiql {
+    private getWiqlQuery(project : IProjectInfo, iteration : Iteration, areaPath : string, asOf? : Date) : Wiql {
         let wiqlString = `SELECT [System.Id] FROM workitems 
         WHERE [System.TeamProject] = '${project.name}' 
         AND [System.AreaPath] = '${areaPath}' 
@@ -16,12 +17,12 @@ export class IterationQueryService {
         AND [System.IterationPath] = '${iteration.path}'`;
 
         if (asOf) {
-            wiqlString += `ASOF '${asOf.format('M/D/Y HH:mm')}'`;
+            wiqlString += `ASOF '${moment(asOf).format('M/D/Y HH:mm')}'`;
         }
         return { query: wiqlString };
     }
 
-    public async getWorkItemsForIteration(project : IProjectInfo, team : Team, iteration : Iteration, asOf?: Moment) : Promise<WorkItem[]> {
+    public async getWorkItemsForIteration(project : IProjectInfo, team : Team, iteration : Iteration, asOf?: Date) : Promise<WorkItem[]> {
         let teamContext : TeamContext = { 
             projectId: project.id,
             project: '',

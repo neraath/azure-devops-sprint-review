@@ -7,6 +7,7 @@ import { TeamContext } from "azure-devops-extension-api/Core";
 import { WorkRestClient } from "azure-devops-extension-api/Work";
 import { WorkItemTrackingRestClient, Wiql, WorkItem } from "azure-devops-extension-api/WorkItemTracking";
 import { WorkItemGrid } from "./WorkItemGrid";
+import { IterationQueryService } from "./IterationQueryService";
 
 export interface SprintReviewGridBaseState {
     workItems: WorkItem[];
@@ -22,6 +23,7 @@ export abstract class SprintReviewGridBase extends React.Component<SprintReviewG
     protected project? : IProjectInfo;
     protected iteration? : Iteration;
     protected team? : Team;
+    protected queryService : IterationQueryService;
 
     constructor(props: SprintReviewGridBaseProps) {
         super(props);
@@ -29,6 +31,7 @@ export abstract class SprintReviewGridBase extends React.Component<SprintReviewG
         this.project = props.project;
         this.iteration = props.iteration;
         this.team = props.team;
+        this.queryService = new IterationQueryService();
 
         this.state = {
             workItems: []
@@ -40,9 +43,9 @@ export abstract class SprintReviewGridBase extends React.Component<SprintReviewG
     }
 
     /** 
-     * Override this to define the different query you want represented.
+     * Override this to define how to fetch the work items you want represented in the grid.
     */
-   protected abstract getWiqlQuery(project : IProjectInfo, iteration : Iteration, areaPath : string) : Wiql;
+   protected abstract async getWorkItems(project : IProjectInfo, team : Team, iteration : Iteration) : Promise<WorkItem[]>;
 
     public componentWillReceiveProps(props : SprintReviewGridBaseProps) {
         console.debug("SprintReviewGridBase: componentWillReceiveProps");
@@ -74,33 +77,7 @@ export abstract class SprintReviewGridBase extends React.Component<SprintReviewG
         if (!project || !team || !iteration) return;
 
         console.debug("SprintReviewGridBase: initializeState with project and team");
-        let teamContext : TeamContext = { 
-            projectId: project.id,
-            project: '',
-            teamId: team.id,
-            team: ''
-        };
-        console.debug(teamContext);
-
-        let workService = getClient(WorkRestClient);
-        let teamFieldValues = await workService.getTeamFieldValues(teamContext);
-        console.debug("SprintReviewGridBase: fetched teamFieldValues")
-        console.debug(teamFieldValues);
-
-        const client = getClient(WorkItemTrackingRestClient);
-        const idResults = await client.queryByWiql(this.getWiqlQuery(project, iteration, teamFieldValues.defaultValue), project.name);
-        console.debug("id results: ");
-        console.debug(idResults);
-
-        if (idResults.workItems.length == 0) {
-            console.debug("No work items. Setting empty.");
-            this.setState({ workItems: [] });
-            return;
-        }
-
-        const columns = ['System.Title','System.State','System.CreatedDate'];
-        const results = await client.getWorkItems(idResults.workItems.map(x => x.id), project.name, columns);
-
+        let results = await this.getWorkItems(project, team, iteration);
         this.setState({ workItems: results });
     }
 }

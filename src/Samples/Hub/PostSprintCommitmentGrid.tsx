@@ -11,6 +11,13 @@ export class PostSprintCommitmentGrid extends SprintReviewGridBase {
     }
 
     protected async getWorkItems(project : IProjectInfo, team : Team, iteration : Iteration) : Promise<WorkItem[]> {
-        return await this.queryService.getWorkItemsForIteration(project, team, iteration, iteration.startDate.add(moment.duration(1, "day")));
+        let workItemsAtCommitment = await this.queryService.getWorkItemsForIteration(project, team, iteration, iteration.startDate.add(moment.duration(1, "day")));
+        let workItemsAtSprintEnd = await this.queryService.getWorkItemsForIteration(project, team, iteration, iteration.endDate);
+        let workItemsAdded = workItemsAtSprintEnd.filter(item => !this.doesWorkItemExistInCollection(item, workItemsAtCommitment));
+        return workItemsAdded;
+    }
+
+    private doesWorkItemExistInCollection(workItem : WorkItem, collection : WorkItem[]) {
+        return collection.findIndex(x => x.id == workItem.id) != -1;
     }
 }

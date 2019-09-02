@@ -1,11 +1,14 @@
 import * as React from "react";
 import * as moment from "moment";
+import * as SDK from "azure-devops-extension-sdk";
 
-import { WorkItem } from "azure-devops-extension-api/WorkItemTracking";
-import { Table, ColumnFill, ISimpleTableCell, ITableColumn } from "azure-devops-ui/Table";
+import { WorkItem, WorkItemTrackingServiceIds, IWorkItemFormNavigationService } from "azure-devops-extension-api/WorkItemTracking";
+import { Table, ColumnFill, ISimpleTableCell, ITableColumn, TableCell } from "azure-devops-ui/Table";
 import { Card } from "azure-devops-ui/Card";
 import { TableColumnLayout, renderSimpleCell } from "azure-devops-ui/Table";
 import { ObservableArray, ObservableValue } from "azure-devops-ui/Core/Observable";
+import { Link } from "azure-devops-ui/Link";
+import { ArrayItemProvider, IItemProvider } from "azure-devops-ui/Utilities/Provider";
 
 export interface WorkItemGridState {
     items: WorkItem[],
@@ -19,9 +22,21 @@ export interface IWorkItemTableItem extends ISimpleTableCell {
 }
 
 export function WorkItemGrid(props : { items: WorkItem[] }) : JSX.Element {
+    const onOpenExistingWorkItemClick = async function(workItemId : number) : Promise<void> {
+        const navSvc = await SDK.getService<IWorkItemFormNavigationService>(WorkItemTrackingServiceIds.WorkItemFormNavigationService);
+        navSvc.openWorkItem(workItemId);
+    }
+
+    const renderTitleAsLink = function(rowIndex: number, columnIndex: number, tableColumn : ITableColumn<IWorkItemTableItem>, tableItem: IWorkItemTableItem) : JSX.Element {
+        return (
+            <TableCell key={"col-" + columnIndex} columnIndex={columnIndex} tableColumn={tableColumn}>
+                <Link href="#" onClick={() => onOpenExistingWorkItemClick(tableItem.id)}>{tableItem.title}</Link>
+            </TableCell>
+        );
+    }
+
     let asyncColumns = [
         {
-            columnLayout: TableColumnLayout.singleLinePrefix,
             id: "id",
             name: "Work Item ID",
             readonly: true,
@@ -29,35 +44,30 @@ export function WorkItemGrid(props : { items: WorkItem[] }) : JSX.Element {
             width: 150
         },
         {
-            columnLayout: TableColumnLayout.singleLinePrefix,
             id: "title",
             name: "Title",
             readonly: true,
-            renderCell: renderSimpleCell,
+            renderCell: renderTitleAsLink,
             width: 400
         },
         {
-            columnLayout: TableColumnLayout.singleLinePrefix,
             id: "state",
             name: "State",
             readonly: true,
             renderCell: renderSimpleCell,
             width: 150
         },
-        
         {
-            columnLayout: TableColumnLayout.singleLinePrefix,
             id: "createdDate",
             name: "Created Date",
             readonly: true,
             renderCell: renderSimpleCell,
             width: 150
         },
-        ColumnFill
+        //ColumnFill
     ];
-    let itemProvider : ObservableArray<
-        IWorkItemTableItem | ObservableValue<IWorkItemTableItem | undefined>
-    >;
+    let itemProvider : IItemProvider<IWorkItemTableItem>;
+    let emptyItemProvider = new ObservableArray<ObservableValue<undefined>>(new Array(3).fill(new ObservableValue<undefined>(undefined)));
 
     function convertWorkItemToCellItem(workItem : WorkItem) : IWorkItemTableItem {
         let createdDate = moment(workItem.fields['System.CreatedDate']);
@@ -71,17 +81,24 @@ export function WorkItemGrid(props : { items: WorkItem[] }) : JSX.Element {
 
     if (props.items.length > 0) {
         itemProvider = new ObservableArray<IWorkItemTableItem>(props.items.map(convertWorkItemToCellItem));
+        return (
+            <Card className="flex-grow bold-table-card" contentProps={{ contentPadding: false }}>
+                <Table
+                    columns={asyncColumns}
+                    itemProvider={itemProvider}
+                    role="table"
+                    />
+            </Card>
+        );
     } else {
-        itemProvider = new ObservableArray<ObservableValue<undefined>>(new Array(3).fill(new ObservableValue<IWorkItemTableItem | undefined>(undefined)));
+        return (
+            <Card className="flex-grow bold-table-card" contentProps={{ contentPadding: false }}>
+                <Table
+                    columns={asyncColumns}
+                    itemProvider={emptyItemProvider}
+                    role="table"
+                    />
+            </Card>
+        );
     }
-
-    return (
-        <Card className="flex-grow bold-table-card" contentProps={{ contentPadding: false }}>
-            <Table
-                columns={asyncColumns}
-                itemProvider={itemProvider}
-                role="table"
-                />
-        </Card>
-    );
 }

@@ -1,9 +1,5 @@
 # Azure DevOps Sprint Review Extension
 
-By Chris Weldon. 
-
-[![Build Status](https://dev.azure.com/ms/azure-devops-extension-sample/_apis/build/status/Microsoft.azure-devops-extension-sample)](https://dev.azure.com/ms/azure-devops-extension-sample/_build/latest?definitionId=14)
-
 This repository contains the source code for a Sprint Review extension to help development team members review sprint commitments and keep track of key changes, like additions or removals, after the committment date. 
 
 ## Dependencies

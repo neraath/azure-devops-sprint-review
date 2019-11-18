@@ -11,6 +11,7 @@ import { IterationQueryService } from "./IterationQueryService";
 
 export interface SprintReviewGridBaseState {
     workItems: WorkItem[];
+    pendingResults: boolean;
 }
 
 export interface SprintReviewGridBaseProps {
@@ -34,7 +35,8 @@ export abstract class SprintReviewGridBase extends React.Component<SprintReviewG
         this.queryService = new IterationQueryService();
 
         this.state = {
-            workItems: []
+            workItems: [],
+            pendingResults: true
         };
     }
 
@@ -64,7 +66,7 @@ export abstract class SprintReviewGridBase extends React.Component<SprintReviewG
 
     render() : JSX.Element {
         return (
-            <WorkItemGrid items={this.state.workItems} />
+            <WorkItemGrid items={this.state.workItems} pendingResults={this.state.pendingResults} />
         );
     }
 
@@ -78,6 +80,6 @@ export abstract class SprintReviewGridBase extends React.Component<SprintReviewG
 
         console.debug("SprintReviewGridBase: initializeState with project and team");
         let results = await this.getWorkItems(project, team, iteration);
-        this.setState({ workItems: results });
+        this.setState({ workItems: results, pendingResults: false });
     }
 }

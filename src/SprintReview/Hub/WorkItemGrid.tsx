@@ -4,15 +4,11 @@ import * as SDK from "azure-devops-extension-sdk";
 
 import { WorkItem, WorkItemTrackingServiceIds, IWorkItemFormNavigationService } from "azure-devops-extension-api/WorkItemTracking";
 import { Table, ColumnFill, ISimpleTableCell, ITableColumn, TableCell } from "azure-devops-ui/Table";
+import { ZeroData, ZeroDataActionType } from "azure-devops-ui/ZeroData";
 import { Card } from "azure-devops-ui/Card";
 import { TableColumnLayout, renderSimpleCell } from "azure-devops-ui/Table";
 import { ObservableArray, ObservableValue } from "azure-devops-ui/Core/Observable";
 import { Link } from "azure-devops-ui/Link";
-import { ArrayItemProvider, IItemProvider } from "azure-devops-ui/Utilities/Provider";
-
-export interface WorkItemGridState {
-    items: WorkItem[],
-};
 
 export interface IWorkItemTableItem extends ISimpleTableCell {
     id: number;
@@ -21,7 +17,7 @@ export interface IWorkItemTableItem extends ISimpleTableCell {
     createdDate: string;
 }
 
-export function WorkItemGrid(props : { items: WorkItem[] }) : JSX.Element {
+export function WorkItemGrid(props : { items: WorkItem[], pendingResults: boolean }) : JSX.Element {
     const onOpenExistingWorkItemClick = async function(workItemId : number) : Promise<void> {
         const navSvc = await SDK.getService<IWorkItemFormNavigationService>(WorkItemTrackingServiceIds.WorkItemFormNavigationService);
         navSvc.openWorkItem(workItemId);
@@ -64,11 +60,9 @@ export function WorkItemGrid(props : { items: WorkItem[] }) : JSX.Element {
             renderCell: renderSimpleCell,
             width: 150
         },
-        //ColumnFill
+        ColumnFill
     ];
-    let itemProvider : IItemProvider<IWorkItemTableItem>;
-    let emptyItemProvider = new ObservableArray<ObservableValue<undefined>>(new Array(3).fill(new ObservableValue<undefined>(undefined)));
-
+    
     function convertWorkItemToCellItem(workItem : WorkItem) : IWorkItemTableItem {
         let createdDate = moment(workItem.fields['System.CreatedDate']);
         return {
@@ -80,7 +74,7 @@ export function WorkItemGrid(props : { items: WorkItem[] }) : JSX.Element {
     }
 
     if (props.items.length > 0) {
-        itemProvider = new ObservableArray<IWorkItemTableItem>(props.items.map(convertWorkItemToCellItem));
+        let itemProvider = new ObservableArray<IWorkItemTableItem>(props.items.map(convertWorkItemToCellItem));
         return (
             <Card className="flex-grow bold-table-card" contentProps={{ contentPadding: false }}>
                 <Table
@@ -90,7 +84,8 @@ export function WorkItemGrid(props : { items: WorkItem[] }) : JSX.Element {
                     />
             </Card>
         );
-    } else {
+    } else if (props.pendingResults) {
+        let emptyItemProvider = new ObservableArray<ObservableValue<undefined>>(new Array(3).fill(new ObservableValue<undefined>(undefined)));
         return (
             <Card className="flex-grow bold-table-card" contentProps={{ contentPadding: false }}>
                 <Table
@@ -99,6 +94,15 @@ export function WorkItemGrid(props : { items: WorkItem[] }) : JSX.Element {
                     role="table"
                     />
             </Card>
+        );
+    } else {
+        let itemProvider = new ObservableArray<IWorkItemTableItem>(props.items.map(convertWorkItemToCellItem));
+        return (
+            <ZeroData primaryText="No results found"
+                secondaryText="There were no user stories found for this query."
+                imageAltText="Bars"
+                imagePath="/src/SprintReview/Hub/bars.png"
+                />
         );
     }
 }

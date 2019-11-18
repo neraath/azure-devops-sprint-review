@@ -56,7 +56,7 @@ export class IterationSelector extends React.Component<IterationSelectorProps, I
             projectInfo: props.project,
             team: props.team,
             iterations: [],
-            selection: new ListSelection()
+            selection: new ListSelection({ selectOnFocus: false, multiSelect: false })
         };
     }
 

@@ -43,7 +43,7 @@ export class TeamSelector extends React.Component<TeamSelectorProps, ITeamSelect
         this.state = {
             projectInfo: props.project,
             teams: [],
-            selection: new ListSelection()
+            selection: new ListSelection({ selectOnFocus: false, multiSelect: false })
         };
     }
 
@@ -108,7 +108,7 @@ export class TeamSelector extends React.Component<TeamSelectorProps, ITeamSelect
         );
     }
 
-    private onTeamChanged = (event: React.SyntheticEvent<HTMLElement>, item: IListBoxItem<Team>) => {
+    private onTeamChanged = (event: React.SyntheticEvent<HTMLElement>, item: IListBoxItem<Team>) : void => {
         console.log("Team changed to " + item.id);
         // Lookup the team since item.data is undefined
         let team = this.state.teams.find(x => x.id === item.id);

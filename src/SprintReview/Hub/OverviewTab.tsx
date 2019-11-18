@@ -57,8 +57,10 @@ export class OverviewTab extends React.Component<{}, IOverviewTabState> {
 
         return (
             <div className="sample-hub-section">
-                <TeamSelector project={this.state.projectInfo} onSelect={(team : Team) => this.onSelectTeam(team)} />
-                <IterationSelector project={this.state.projectInfo} team={this.state.team} onSelect={(iteration : Iteration) => this.onSelectIteration(iteration)} />
+                <div className="flex-row">
+                    <TeamSelector project={this.state.projectInfo} onSelect={(team : Team) => this.onSelectTeam(team)} />
+                    <IterationSelector project={this.state.projectInfo} team={this.state.team} onSelect={(iteration : Iteration) => this.onSelectIteration(iteration)} />
+                </div>
                 <h2>Sprint Ending</h2>
                 <SprintEndingGrid project={this.state.projectInfo} iteration={this.state.iteration} team={this.state.team} />
 

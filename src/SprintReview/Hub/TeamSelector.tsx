@@ -100,6 +100,7 @@ export class TeamSelector extends React.Component<TeamSelectorProps, ITeamSelect
         return (
             <Dropdown<Team>
                 className="sample-picker"
+                placeholder="Loading..."
                 items={this.state.teams}
                 onSelect={this.onTeamChanged}
                 selection={this.state.selection}

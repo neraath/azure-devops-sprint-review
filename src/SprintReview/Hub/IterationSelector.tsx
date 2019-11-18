@@ -131,6 +131,7 @@ export class IterationSelector extends React.Component<IterationSelectorProps, I
         return (
             <Dropdown<Iteration>
                 className="sample-picker"
+                placeholder="Loading..."
                 items={this.state.iterations}
                 onSelect={this.onIterationChanged}
                 selection={this.state.selection}

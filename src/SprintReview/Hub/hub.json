@@ -15,7 +15,7 @@
             "properties": {
                 "name": "Sprint Review",
                 "uri": "dist/Hub/Hub.html",
-                "icon": "asset://static/sample-icon.png"
+                "icon": "asset://static/history-icon.png"
             }
         }
     ],

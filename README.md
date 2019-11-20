@@ -1,4 +1,4 @@
-# Azure DevOps Sprint Review Extension
+# Sprint Review Extension
 
 This repository contains the source code for a Sprint Review extension to help development team members review sprint commitments and keep track of key changes, like additions or removals, after the committment date. 
 

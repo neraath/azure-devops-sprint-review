@@ -1,4 +1,5 @@
 {
-    "id": "sprint-review",
-    "public": true
+    "id": "sprint-review-preview",
+    "name": "Sprint Review - Preview",
+    "public": false
 }

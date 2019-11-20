@@ -2,9 +2,9 @@
     "manifestVersion": 1,
     "id": "sprint-review",
     "publisher": "ChrisWeldon",
-    "version": "1.0.11",
-    "name": "Azure DevOps Sprint Review",
-    "description": "Azure DevOps Extension",
+    "version": "1.0.15",
+    "name": "Sprint Review",
+    "description": "Provides views to review sprint changes during and after a sprint.",
     "categories": [
         "Azure Boards"
     ],

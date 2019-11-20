@@ -1,6 +1,6 @@
 {
     "id": "sprint-review-dev",
-    "name": "Azure DevOps Sprint Review - DEVELOPMENT",
+    "name": "Sprint Review - DEVELOPMENT",
     "public": false,
     "baseUri": "https://localhost:3000"
 }

@@ -1,3 +1,5 @@
+import * as React from "react";
+
 import { getClient } from "azure-devops-extension-api";
 import { Wiql, WorkItem, WorkItemTrackingRestClient } from "azure-devops-extension-api/WorkItemTracking";
 import WorkItemFieldNames from "./WorkItemFieldNames";
@@ -7,7 +9,22 @@ export interface OriginalAndCompletedTime {
     CompletedWork: number;
 }
 
-export class TaskQueryService {
+export interface ITaskQueryState {
+    WorkItemId: number;
+    OriginalEstimate?: number;
+    CompletedWork?: number;
+}
+
+export class TaskQueryService extends React.Component<{ workItemId: number }, ITaskQueryState> {
+
+    constructor(props : { workItemId: number }) {
+        super(props);
+
+        this.state = {
+            WorkItemId: props.workItemId
+        };
+    }
+
     private getWiqlQuery(userStoryId : number) : Wiql {
         let wiqlString = `SELECT
             [System.Id]
@@ -22,10 +39,10 @@ export class TaskQueryService {
         return { query: wiqlString };
     }
 
-    public async getOriginalAndCompletedTime(workItem : WorkItem) : Promise<OriginalAndCompletedTime> {
-        console.debug(`querying the following workitem: ${workItem.id}`);
+    public async getOriginalAndCompletedTime(workItemId : number) : Promise<OriginalAndCompletedTime> {
+        console.debug(`querying the following workitem: ${workItemId}`);
         let workItemService = getClient(WorkItemTrackingRestClient);
-        const results = await workItemService.queryByWiql(this.getWiqlQuery(workItem.id));
+        const results = await workItemService.queryByWiql(this.getWiqlQuery(workItemId));
 
         if (!results.workItemRelations) return;
         const columns = [WorkItemFieldNames.OriginalEstimate,WorkItemFieldNames.CompletedWork];
@@ -38,9 +55,24 @@ export class TaskQueryService {
             completedWork += x.fields[WorkItemFieldNames.CompletedWork];
         });
 
-        return {
+        this.setState({
             OriginalEstimate: originalEstimate,
             CompletedWork: completedWork
-        };
+        })
+    }
+
+    public componentDidMount() {
+        this.initializeState();
+    }
+
+    private async initializeState() : Promise<void> {
+        console.debug("GETTING ORIGINAL AND COMPLETED TIME");
+        this.getOriginalAndCompletedTime(this.state.WorkItemId);
+    }
+
+    public render() : JSX.Element {
+        return (
+            <div>{this.state.OriginalEstimate}</div>
+        );
     }
 }

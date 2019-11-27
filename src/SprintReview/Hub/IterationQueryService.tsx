@@ -10,12 +10,6 @@ import { TaskQueryService } from "./TaskQueryService";
 import asyncForEach from "./AsyncForeach";
 
 export class IterationQueryService {
-    private taskQueryService : TaskQueryService;
-    
-    constructor() {
-        this.taskQueryService = new TaskQueryService();
-    }
-    
     private getWiqlQuery(project : IProjectInfo, iteration : Iteration, areaPath : string, asOf? : Date) : Wiql {
         let wiqlString = `SELECT [System.Id] FROM workitems 
         WHERE [System.TeamProject] = '${project.name}' 
@@ -55,12 +49,6 @@ export class IterationQueryService {
 
         const columns = ['System.Title','System.State','System.CreatedDate'];
         const results = await client.getWorkItems(idResults.workItems.map(x => x.id), project.name, columns);
-
-        asyncForEach(results, async (workItem : WorkItem) => {
-            let originalAndCompletedTime = await this.taskQueryService.getOriginalAndCompletedTime(workItem);
-            console.debug("Original and completed");
-            console.debug(originalAndCompletedTime);
-        });
 
         return results;
     }

@@ -10,6 +10,7 @@ import { TableColumnLayout, renderSimpleCell } from "azure-devops-ui/Table";
 import { ObservableArray, ObservableValue } from "azure-devops-ui/Core/Observable";
 import { Link } from "azure-devops-ui/Link";
 import WorkItemFieldNames from "./WorkItemFieldNames";
+import { TaskQueryService } from "./TaskQueryService";
 
 export interface IWorkItemTableItem extends ISimpleTableCell {
     id: number;
@@ -36,7 +37,7 @@ export function WorkItemGrid(props : { items: WorkItem[], pendingResults: boolea
     const renderOriginalEstimate = function(rowIndex: number, columnIndex: number, tableColumn : ITableColumn<IWorkItemTableItem>, tableItem: IWorkItemTableItem) : JSX.Element {
         return (
             <TableCell key={"col-" + columnIndex} columnIndex={columnIndex} tableColumn={tableColumn}>
-                <div>83.4</div>
+                <TaskQueryService workItemId={tableItem.id} />
             </TableCell>
         );
     }
@@ -85,8 +86,6 @@ export function WorkItemGrid(props : { items: WorkItem[], pendingResults: boolea
     }
     
     function convertWorkItemToCellItem(workItem : WorkItem) : IWorkItemTableItem {
-        console.debug("RENDERING FIELDS");
-        console.debug(workItem.fields);
         let createdDate = moment(workItem.fields[WorkItemFieldNames.CreatedDate]);
         return {
             id: workItem.id,

@@ -9,12 +9,14 @@ import { Card } from "azure-devops-ui/Card";
 import { TableColumnLayout, renderSimpleCell } from "azure-devops-ui/Table";
 import { ObservableArray, ObservableValue } from "azure-devops-ui/Core/Observable";
 import { Link } from "azure-devops-ui/Link";
+import WorkItemFieldNames from "./WorkItemFieldNames";
 
 export interface IWorkItemTableItem extends ISimpleTableCell {
     id: number;
     title: string;
     state: string;
     createdDate: string;
+    originalEstimate: number;
 }
 
 export function WorkItemGrid(props : { items: WorkItem[], pendingResults: boolean }) : JSX.Element {
@@ -27,6 +29,14 @@ export function WorkItemGrid(props : { items: WorkItem[], pendingResults: boolea
         return (
             <TableCell key={"col-" + columnIndex} columnIndex={columnIndex} tableColumn={tableColumn}>
                 <Link href="#" onClick={() => onOpenExistingWorkItemClick(tableItem.id)}>{tableItem.title}</Link>
+            </TableCell>
+        );
+    }
+
+    const renderOriginalEstimate = function(rowIndex: number, columnIndex: number, tableColumn : ITableColumn<IWorkItemTableItem>, tableItem: IWorkItemTableItem) : JSX.Element {
+        return (
+            <TableCell key={"col-" + columnIndex} columnIndex={columnIndex} tableColumn={tableColumn}>
+                <div>83.4</div>
             </TableCell>
         );
     }
@@ -60,16 +70,30 @@ export function WorkItemGrid(props : { items: WorkItem[], pendingResults: boolea
             renderCell: renderSimpleCell,
             width: 150
         },
+        {
+            id: "originalEstimate",
+            name: "Original Estimate",
+            readonly: true,
+            renderCell: renderOriginalEstimate,
+            width: 150
+        },
         ColumnFill
     ];
+
+    function printField(field : {}) {
+        console.debug(field);
+    }
     
     function convertWorkItemToCellItem(workItem : WorkItem) : IWorkItemTableItem {
-        let createdDate = moment(workItem.fields['System.CreatedDate']);
+        console.debug("RENDERING FIELDS");
+        console.debug(workItem.fields);
+        let createdDate = moment(workItem.fields[WorkItemFieldNames.CreatedDate]);
         return {
             id: workItem.id,
-            title: workItem.fields['System.Title'],
-            state: workItem.fields['System.State'],
-            createdDate: createdDate.format('MMMM D, Y')
+            title: workItem.fields[WorkItemFieldNames.Title],
+            state: workItem.fields[WorkItemFieldNames.State],
+            createdDate: createdDate.format('MMMM D, Y'),
+            originalEstimate: workItem.fields[WorkItemFieldNames.OriginalEstimate]
         };
     }
 

@@ -6,9 +6,16 @@ import { WorkItemTrackingRestClient, Wiql, WorkItem } from "azure-devops-extensi
 import { Iteration } from "./IterationSelector";
 import { Moment } from "moment";
 import moment = require("moment");
+import { TaskQueryService } from "./TaskQueryService";
+import asyncForEach from "./AsyncForeach";
 
 export class IterationQueryService {
-
+    private taskQueryService : TaskQueryService;
+    
+    constructor() {
+        this.taskQueryService = new TaskQueryService();
+    }
+    
     private getWiqlQuery(project : IProjectInfo, iteration : Iteration, areaPath : string, asOf? : Date) : Wiql {
         let wiqlString = `SELECT [System.Id] FROM workitems 
         WHERE [System.TeamProject] = '${project.name}' 
@@ -29,17 +36,17 @@ export class IterationQueryService {
             teamId: team.id,
             team: ''
         };
-        console.debug(teamContext);
+        // console.debug(teamContext);
 
         let workService = getClient(WorkRestClient);
         let teamFieldValues = await workService.getTeamFieldValues(teamContext);
-        console.debug("SprintReviewGridBase: fetched teamFieldValues")
-        console.debug(teamFieldValues);
+        // console.debug("SprintReviewGridBase: fetched teamFieldValues")
+        // console.debug(teamFieldValues);
 
         const client = getClient(WorkItemTrackingRestClient);
         const idResults = await client.queryByWiql(this.getWiqlQuery(project, iteration, teamFieldValues.defaultValue, asOf), project.name);
-        console.debug("id results: ");
-        console.debug(idResults);
+        // console.debug("id results: ");
+        // console.debug(idResults);
 
         if (idResults.workItems.length == 0) {
             console.debug("No work items. Setting empty.");
@@ -48,6 +55,12 @@ export class IterationQueryService {
 
         const columns = ['System.Title','System.State','System.CreatedDate'];
         const results = await client.getWorkItems(idResults.workItems.map(x => x.id), project.name, columns);
+
+        asyncForEach(results, async (workItem : WorkItem) => {
+            let originalAndCompletedTime = await this.taskQueryService.getOriginalAndCompletedTime(workItem);
+            console.debug("Original and completed");
+            console.debug(originalAndCompletedTime);
+        });
 
         return results;
     }

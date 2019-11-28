@@ -2,11 +2,6 @@ import * as React from "react";
 
 import { TaskQueryService } from "./TaskQueryService";
 
-export interface OriginalAndCompletedTime {
-    OriginalEstimate: number;
-    CompletedWork: number;
-}
-
 export interface IOriginalEstimateState {
     WorkItemId: number;
     OriginalEstimate?: number;
@@ -17,7 +12,7 @@ export class OriginalEstimateField extends React.Component<{ workItemId: number 
 
     constructor(props : { workItemId: number }) {
         super(props);
-        this.taskService = new TaskQueryService(props.workItemId);
+        this.taskService = new TaskQueryService();
         this.state = {
             WorkItemId: props.workItemId
         };
@@ -37,7 +32,7 @@ export class OriginalEstimateField extends React.Component<{ workItemId: number 
 
     public render() : JSX.Element {
         return (
-            <div>{this.state.OriginalEstimate}</div>
+            <div>{isNaN(this.state.OriginalEstimate) ? 0 : this.state.OriginalEstimate}</div>
         );
     }
 }

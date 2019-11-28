@@ -10,12 +10,6 @@ export interface OriginalAndCompletedTime {
 }
 
 export class TaskQueryService {
-    private workItemId : number;
-
-    constructor(workItemId: number) {
-        this.workItemId = workItemId;
-    }
-
     private getWiqlQuery(userStoryId : number) : Wiql {
         let wiqlString = `SELECT
             [System.Id]

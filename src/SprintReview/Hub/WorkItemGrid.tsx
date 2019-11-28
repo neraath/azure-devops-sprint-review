@@ -17,7 +17,6 @@ export interface IWorkItemTableItem extends ISimpleTableCell {
     title: string;
     state: string;
     createdDate: string;
-    originalEstimate: number;
 }
 
 export function WorkItemGrid(props : { items: WorkItem[], pendingResults: boolean }) : JSX.Element {
@@ -35,6 +34,14 @@ export function WorkItemGrid(props : { items: WorkItem[], pendingResults: boolea
     }
 
     const renderOriginalEstimate = function(rowIndex: number, columnIndex: number, tableColumn : ITableColumn<IWorkItemTableItem>, tableItem: IWorkItemTableItem) : JSX.Element {
+        return (
+            <TableCell key={"col-" + columnIndex} columnIndex={columnIndex} tableColumn={tableColumn}>
+                <TaskQueryService workItemId={tableItem.id} />
+            </TableCell>
+        );
+    }
+
+    const renderCompletedWork = function(rowIndex: number, columnIndex: number, tableColumn : ITableColumn<IWorkItemTableItem>, tableItem: IWorkItemTableItem) : JSX.Element {
         return (
             <TableCell key={"col-" + columnIndex} columnIndex={columnIndex} tableColumn={tableColumn}>
                 <TaskQueryService workItemId={tableItem.id} />
@@ -76,6 +83,13 @@ export function WorkItemGrid(props : { items: WorkItem[], pendingResults: boolea
             name: "Original Estimate",
             readonly: true,
             renderCell: renderOriginalEstimate,
+            width: 150
+        },
+        {
+            id: "completedWork",
+            name: "Completed Work",
+            readonly: true,
+            renderCell: renderCompletedWork,
             width: 150
         },
         ColumnFill

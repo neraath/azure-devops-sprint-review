@@ -9,11 +9,20 @@ export interface OriginalAndCompletedTime {
     CompletedWork: number;
 }
 
-export class TaskQueryService {
-    private workItemId : number;
+export interface ITaskQueryState {
+    WorkItemId: number;
+    OriginalEstimate?: number;
+    CompletedWork?: number;
+}
 
-    constructor(workItemId: number) {
-        this.workItemId = workItemId;
+export class CompletedWorkField extends React.Component<{ workItemId: number }, ITaskQueryState> {
+
+    constructor(props : { workItemId: number }) {
+        super(props);
+
+        this.state = {
+            WorkItemId: props.workItemId
+        };
     }
 
     private getWiqlQuery(userStoryId : number) : Wiql {
@@ -46,9 +55,24 @@ export class TaskQueryService {
             completedWork += x.fields[WorkItemFieldNames.CompletedWork];
         });
 
-        return {
+        this.setState({
             OriginalEstimate: originalEstimate,
             CompletedWork: completedWork
-        };
+        })
+    }
+
+    public componentDidMount() {
+        this.initializeState();
+    }
+
+    private async initializeState() : Promise<void> {
+        console.debug("GETTING ORIGINAL AND COMPLETED TIME");
+        await this.getOriginalAndCompletedTime(this.state.WorkItemId);
+    }
+
+    public render() : JSX.Element {
+        return (
+            <div>{this.state.OriginalEstimate}</div>
+        );
     }
 }

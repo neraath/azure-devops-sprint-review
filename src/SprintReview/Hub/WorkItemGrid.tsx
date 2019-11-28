@@ -11,6 +11,8 @@ import { ObservableArray, ObservableValue } from "azure-devops-ui/Core/Observabl
 import { Link } from "azure-devops-ui/Link";
 import WorkItemFieldNames from "./WorkItemFieldNames";
 import { TaskQueryService } from "./TaskQueryService";
+import { OriginalEstimateField } from "./OriginalEstimateField";
+import { CompletedWorkField } from "./CompletedWorkField";
 
 export interface IWorkItemTableItem extends ISimpleTableCell {
     id: number;
@@ -36,7 +38,7 @@ export function WorkItemGrid(props : { items: WorkItem[], pendingResults: boolea
     const renderOriginalEstimate = function(rowIndex: number, columnIndex: number, tableColumn : ITableColumn<IWorkItemTableItem>, tableItem: IWorkItemTableItem) : JSX.Element {
         return (
             <TableCell key={"col-" + columnIndex} columnIndex={columnIndex} tableColumn={tableColumn}>
-                <TaskQueryService workItemId={tableItem.id} />
+                <OriginalEstimateField workItemId={tableItem.id} />
             </TableCell>
         );
     }
@@ -44,7 +46,7 @@ export function WorkItemGrid(props : { items: WorkItem[], pendingResults: boolea
     const renderCompletedWork = function(rowIndex: number, columnIndex: number, tableColumn : ITableColumn<IWorkItemTableItem>, tableItem: IWorkItemTableItem) : JSX.Element {
         return (
             <TableCell key={"col-" + columnIndex} columnIndex={columnIndex} tableColumn={tableColumn}>
-                <TaskQueryService workItemId={tableItem.id} />
+                <CompletedWorkField workItemId={tableItem.id} />
             </TableCell>
         );
     }

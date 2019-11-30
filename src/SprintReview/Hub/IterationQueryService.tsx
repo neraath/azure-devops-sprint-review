@@ -11,11 +11,24 @@ import asyncForEach from "./AsyncForeach";
 
 export class IterationQueryService {
     private getWiqlQuery(project : IProjectInfo, iteration : Iteration, areaPath : string, asOf? : Date) : Wiql {
-        let wiqlString = `SELECT [System.Id] FROM workitems 
-        WHERE [System.TeamProject] = '${project.name}' 
-        AND [System.AreaPath] = '${areaPath}' 
-        AND [System.WorkItemType] = 'User Story' 
-        AND [System.IterationPath] = '${iteration.path}'`;
+        let wiqlString = `
+            SELECT
+                [System.Id],
+                [System.WorkItemType],
+                [System.Title],
+                [Microsoft.VSTS.Scheduling.OriginalEstimate],
+                [Microsoft.VSTS.Scheduling.CompletedWork]
+            FROM workitemLinks
+            WHERE
+                [Source].[System.WorkItemType] = 'User Story'
+                AND [Source].[System.TeamProject] = '${project.name}'
+                AND [Source].[System.AreaPath] = '${areaPath}'
+                AND [Source].[System.IterationPath] = '${iteration.path}'
+                AND [System.Links.LinkType] = 'System.LinkTypes.Hierarchy-Forward'
+                AND [Target].[System.WorkItemType] = 'Task'
+            ORDER BY [System.Id]
+            MODE (MayContain)
+        `;
 
         if (asOf) {
             wiqlString += `ASOF '${moment(asOf).format('M/D/Y HH:mm')}'`;
@@ -34,21 +47,27 @@ export class IterationQueryService {
 
         let workService = getClient(WorkRestClient);
         let teamFieldValues = await workService.getTeamFieldValues(teamContext);
-        // console.debug("SprintReviewGridBase: fetched teamFieldValues")
-        // console.debug(teamFieldValues);
+        console.debug("SprintReviewGridBase: fetched teamFieldValues")
+        console.debug(teamFieldValues);
 
         const client = getClient(WorkItemTrackingRestClient);
         const idResults = await client.queryByWiql(this.getWiqlQuery(project, iteration, teamFieldValues.defaultValue, asOf), project.name);
-        // console.debug("id results: ");
-        // console.debug(idResults);
+        console.debug("id results: ");
+        console.debug(idResults);
 
-        if (idResults.workItems.length == 0) {
+        if (idResults.workItemRelations.length == 0) {
             console.debug("No work items. Setting empty.");
             return [];
         }
 
+        if (idResults.workItemRelations.filter(x => x.target).length == 0)
+        {
+            console.debug("No target items. Returning empty.");
+            return [];
+        }
+
         const columns = ['System.Title','System.State','System.CreatedDate'];
-        const results = await client.getWorkItems(idResults.workItems.map(x => x.id), project.name, columns);
+        const results = await client.getWorkItems(idResults.workItemRelations.filter(x => x.target).map(x => x.target.id), project.name, columns);
 
         return results;
     }

@@ -31,7 +31,7 @@ export interface TeamSelectorProps {
 }
 
 export class TeamSelector extends React.Component<TeamSelectorProps, ITeamSelectorState> {
-    private readonly TeamExtensionId = "selected-team";
+    private TeamExtensionId : string;
     private onSelect : (team: Team) => void;
     private _dataManager?: IExtensionDataManager;
 
@@ -39,6 +39,11 @@ export class TeamSelector extends React.Component<TeamSelectorProps, ITeamSelect
         super(props);
 
         this.onSelect = props.onSelect;
+        this.TeamExtensionId = "selected-team";
+        if (props.project) {
+            console.debug('Project was provided. Adding to Team Extension Id.');
+            this.TeamExtensionId += props.project.id;
+        }
 
         this.state = {
             projectInfo: props.project,
@@ -79,8 +84,12 @@ export class TeamSelector extends React.Component<TeamSelectorProps, ITeamSelect
             console.debug(data);
             if (data) {
                 let indexOfTeam = this.state.teams.findIndex(x => x.id == data.id);
-                this.state.selection.select(indexOfTeam);
-                this.onSelect(data);
+                if (indexOfTeam > -1) {
+                    this.state.selection.select(indexOfTeam);
+                    this.onSelect(data);
+                } else {
+                    this.selecteDefaultTeam();
+                }
             } else {
                 this.selecteDefaultTeam();
             }
@@ -92,6 +101,7 @@ export class TeamSelector extends React.Component<TeamSelectorProps, ITeamSelect
     }
 
     private selecteDefaultTeam() {
+        console.debug('selecting DEFAULT TEAM');
         this.state.selection.select(0); // Start by selecting the first item.
         this.onSelect(this.state.teams[0]);
     }

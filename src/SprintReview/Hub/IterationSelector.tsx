@@ -101,8 +101,12 @@ export class IterationSelector extends React.Component<IterationSelectorProps, I
             console.debug(data);
             if (data) {
                 let indexOfIteration = this.state.iterations.findIndex(x => x.id == data.id);
-                this.state.selection.select(indexOfIteration);
-                this.onSelect(data);
+                if (indexOfIteration >= 0) {
+                    this.state.selection.select(indexOfIteration);
+                    this.onSelect(data);
+                } else {
+                    this.selectCurrentIteration(iterationService, teamContext);
+                }
             } else {
                 this.selectCurrentIteration(iterationService, teamContext);
             }
@@ -113,6 +117,7 @@ export class IterationSelector extends React.Component<IterationSelectorProps, I
     }
 
     private async selectCurrentIteration(iterationService : WorkRestClient, teamContext : TeamContext) {
+        console.debug('selecting CURRENT iteration');
         let currentIteration = await iterationService.getTeamIterations(teamContext, "Current");
 
         let currentIterationId = 0;

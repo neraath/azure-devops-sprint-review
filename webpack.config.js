@@ -23,6 +23,8 @@ module.exports = {
     devtool: "inline-source-map",
     devServer: {
         https: true,
+        key: fs.readFileSync('localhost.key'),
+        cert: fs.readFileSync('localhost.crt'),
         port: 3000
     },
     resolve: {

@@ -2,7 +2,7 @@
     "manifestVersion": 1,
     "id": "sprint-review",
     "publisher": "ChrisWeldon",
-    "version": "1.0.15",
+    "version": "1.0.20",
     "name": "Sprint Review",
     "description": "Provides views to review sprint changes during and after a sprint.",
     "categories": [

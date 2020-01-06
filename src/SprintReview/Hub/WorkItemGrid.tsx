@@ -140,7 +140,7 @@ export function WorkItemGrid(props : { items: WorkItem[], pendingResults: boolea
             <ZeroData primaryText="No results found"
                 secondaryText="There were no user stories found for this query."
                 imageAltText="Bars"
-                imagePath="/static/bars.png"
+                imagePath="bars.png"
                 />
         );
     }

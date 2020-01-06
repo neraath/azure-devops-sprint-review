@@ -2,7 +2,7 @@
     "manifestVersion": 1,
     "id": "sprint-review",
     "publisher": "ChrisWeldon",
-    "version": "1.0.20",
+    "version": "1.0.26",
     "name": "Sprint Review",
     "description": "Provides views to review sprint changes during and after a sprint.",
     "categories": [
@@ -24,7 +24,8 @@
     "files": [
         {
             "path": "static",
-            "addressable": true
+            "addressable": true,
+            "packagePath": "dist/Hub/static"
         },
         {
             "path": "dist",

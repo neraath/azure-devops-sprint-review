@@ -3,19 +3,18 @@ import * as React from "react";
 import { TaskQueryService } from "./TaskQueryService";
 
 export interface ICompletedWorkState {
-    WorkItemId: number;
     CompletedWork?: number;
 }
 
 export class CompletedWorkField extends React.Component<{ workItemId: number }, ICompletedWorkState> {
     private taskService : TaskQueryService;
+    private workItemId : number;
 
     constructor(props : { workItemId: number }) {
         super(props);
         this.taskService = new TaskQueryService();
-        this.state = {
-            WorkItemId: props.workItemId
-        };
+        this.workItemId = props.workItemId;
+        this.state = {};
     }
 
     public componentDidMount() {
@@ -23,7 +22,7 @@ export class CompletedWorkField extends React.Component<{ workItemId: number }, 
     }
 
     private async initializeState() : Promise<void> {
-        let times = await this.taskService.getOriginalAndCompletedTime(this.state.WorkItemId);
+        let times = await this.taskService.getOriginalAndCompletedTime(this.workItemId);
         this.setState({
             CompletedWork: times.CompletedWork
         });

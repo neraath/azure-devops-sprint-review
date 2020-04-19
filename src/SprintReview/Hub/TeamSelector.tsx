@@ -73,7 +73,7 @@ export class TeamSelector extends React.Component<TeamSelectorProps, ITeamSelect
 
         const coreService = getClient(CoreRestClient);
         let teamResults = await coreService.getTeams(projectInfo.id);
-        this.setState({ projectInfo: projectInfo, teams: teamResults.map((webApiTeam) => new Team(webApiTeam.id, webApiTeam.name)) });
+        this.setState({ projectInfo: projectInfo, teams: teamResults.sort((a, b) => (a.name.toUpperCase() < b.name.toUpperCase()) ? -1 : 1).map((webApiTeam) => new Team(webApiTeam.id, webApiTeam.name)) });
 
         const accessToken = await SDK.getAccessToken();
         const extDataService = await SDK.getService<IExtensionDataService>(CommonServiceIds.ExtensionDataService);
